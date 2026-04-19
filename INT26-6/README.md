@@ -76,6 +76,91 @@ INT26-6/
 - вміст самих .sh, .service і .timer
 - налаштування log_watcher, включно з email-адресами
 
+Приклад запуску: `sudo ./install_monitors.sh`
+
+```text
+Found: disk_monitor.sh
+Set interval for disk_monitor (e.g. 30s, 5min, 1h) [5min]: 30s 
+Description [Disk monitor]: disk monitor every 5min
+Installed: /usr/local/bin/disk_monitor.sh
+Created:   /etc/systemd/system/disk_monitor.service
+Created:   /etc/systemd/system/disk_monitor.timer
+Saved:     /home/dimitr/Desktop/outposts/monitors/disk_monitor.service
+Saved:     /home/dimitr/Desktop/outposts/monitors/disk_monitor.timer
+Found: ram_monitor.sh
+Set interval for ram_monitor (e.g. 30s, 5min, 1h) [5min]: 30s
+Description [Ram monitor]: ram monitor every 5min
+Installed: /usr/local/bin/ram_monitor.sh
+Created:   /etc/systemd/system/ram_monitor.service
+Created:   /etc/systemd/system/ram_monitor.timer
+Saved:     /home/dimitr/Desktop/outposts/monitors/ram_monitor.service
+Saved:     /home/dimitr/Desktop/outposts/monitors/ram_monitor.timer
+Enter ALERT_EMAIL for log watcher: shpatakovskyid@gmail.com
+Enter SENDER_EMAIL [admin@server.shpatakovskyid.pp.ua]: admin@server.shpatakovskyid.pp.ua
+Created symlink '/etc/systemd/system/timers.target.wants/disk_monitor.timer' → '/etc/systemd/system/disk_monitor.timer'.
+Created symlink '/etc/systemd/system/timers.target.wants/ram_monitor.timer' → '/etc/systemd/system/ram_monitor.timer'.
+NEXT                                 LEFT LAST                              PASSED UNIT                           ACTIVATES                       
+Sun 2026-04-19 17:07:35 UTC           29s Sun 2026-04-19 17:07:04 UTC    318ms ago disk_monitor.timer             disk_monitor.service
+Sun 2026-04-19 17:07:35 UTC           29s Sun 2026-04-19 17:07:05 UTC    153ms ago ram_monitor.timer              ram_monitor.service
+Sun 2026-04-19 17:10:00 UTC      2min 54s Sun 2026-04-19 17:00:30 UTC     6min ago sysstat-collect.timer          sysstat-collect.service
+Sun 2026-04-19 17:34:08 UTC         27min Sun 2026-04-19 16:31:59 UTC    35min ago anacron.timer                  anacron.service
+Sun 2026-04-19 18:00:37 UTC         53min Sun 2026-04-19 17:07:04 UTC    332ms ago fwupd-refresh.timer            fwupd-refresh.service
+Sun 2026-04-19 20:48:14 UTC      3h 41min Sun 2026-04-19 12:10:37 UTC 4h 12min ago apt-daily.timer                apt-daily.service
+Mon 2026-04-20 00:00:00 UTC            6h Sun 2026-04-19 00:00:08 UTC       7h ago dpkg-db-backup.timer           dpkg-db-backup.service
+Mon 2026-04-20 00:00:00 UTC            6h Sun 2026-04-19 00:00:08 UTC       7h ago sysstat-rotate.timer           sysstat-rotate.service
+Mon 2026-04-20 00:07:00 UTC            6h Sun 2026-04-19 00:07:03 UTC       7h ago sysstat-summary.timer          sysstat-summary.service
+Mon 2026-04-20 00:23:24 UTC            7h Sun 2026-04-19 14:08:30 UTC 2h 58min ago motd-news.timer                motd-news.service
+Mon 2026-04-20 00:37:57 UTC            7h Sun 2026-04-19 00:38:23 UTC       6h ago logrotate.timer                logrotate.service
+Mon 2026-04-20 00:39:06 UTC            7h -                                      - fstrim.timer                   fstrim.service
+Mon 2026-04-20 06:12:31 UTC           13h Sun 2026-04-19 11:50:44 UTC 4h 31min ago apt-daily-upgrade.timer        apt-daily-upgrade.service
+Mon 2026-04-20 08:11:44 UTC           15h Sat 2026-04-18 22:27:23 UTC       8h ago update-notifier-download.timer update-notifier-download.service
+Mon 2026-04-20 08:22:13 UTC           15h Sat 2026-04-18 22:37:52 UTC       8h ago systemd-tmpfiles-clean.timer   systemd-tmpfiles-clean.service
+Mon 2026-04-20 09:53:37 UTC           16h Sun 2026-04-19 14:08:30 UTC 2h 58min ago man-db.timer                   man-db.service
+Sun 2026-04-26 03:10:56 UTC        6 days Sun 2026-04-19 11:50:44 UTC 4h 31min ago e2scrub_all.timer              e2scrub_all.service
+Wed 2026-04-29 07:46:19 UTC 1 week 2 days Sun 2026-04-19 15:01:21 UTC  2h 5min ago update-notifier-motd.timer     update-notifier-motd.service
+
+18 timers listed.
+Pass --all to see loaded but inactive timers, too.
+● disk_monitor.timer - Run disk monitor every 5min every 30s
+     Loaded: loaded (/etc/systemd/system/disk_monitor.timer; enabled; preset: enabled)
+     Active: active (waiting) since Sun 2026-04-19 17:07:04 UTC; 335ms ago
+ Invocation: a7a23beda0a14ad1bb85eaf3796ae44a
+    Trigger: Sun 2026-04-19 17:07:35 UTC; 29s left
+   Triggers: ● disk_monitor.service
+
+Apr 19 17:07:04 linux-server systemd[1]: Started disk_monitor.timer - Run disk monitor every 5min every 30s.
+● ram_monitor.timer - Run ram monitor every 5min every 30s
+     Loaded: loaded (/etc/systemd/system/ram_monitor.timer; enabled; preset: enabled)
+     Active: active (waiting) since Sun 2026-04-19 17:07:05 UTC; 182ms ago
+ Invocation: d5e35042ee7b4a4692bcf4a762894c20
+    Trigger: Sun 2026-04-19 17:07:35 UTC; 29s left
+   Triggers: ● ram_monitor.service
+
+Apr 19 17:07:05 linux-server systemd[1]: Started ram_monitor.timer - Run ram monitor every 5min every 30s.
+● log_watcher.service - Monitor warning logs and send email alerts
+     Loaded: loaded (/etc/systemd/system/log_watcher.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-04-19 17:07:05 UTC; 37ms ago
+ Invocation: 2ff61fe88ef84eeea9bae3ea731a2d71
+   Main PID: 100609 (log_watcher.sh)
+      Tasks: 5 (limit: 6675)
+     Memory: 4.1M (peak: 5.5M)
+        CPU: 16ms
+     CGroup: /system.slice/log_watcher.service
+             ├─100609 /bin/bash /usr/local/bin/log_watcher.sh
+             ├─100614 tail -F /var/log/monitor/disk_monitor.log /var/log/monitor/ram_monitor.log
+             ├─100615 /bin/bash /usr/local/bin/log_watcher.sh
+             └─100623 mail -s "System Monitor Warning - linux-server" -a "From: admin@server.shpatakovskyid.pp.ua" shpatakovskyid@gmail.com
+
+Apr 19 17:07:05 linux-server systemd[1]: Started log_watcher.service - Monitor warning logs and send email alerts.
+Created:   ./log_watcher.sh
+Installed: /usr/local/bin/log_watcher.sh
+Created:   ./log_watcher.service
+Created:   /etc/systemd/system/log_watcher.service
+Log written to: ./installation_logs/monitors_installation_log_20260419_170534.json
+Monitors installed: 2
+Done.
+```
+
 ---
 
 ## 2. Advanced: Налаштування поштового сервера та DNS (VirtualBox)
