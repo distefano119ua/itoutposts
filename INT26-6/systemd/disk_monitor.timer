@@ -1,0 +1,10 @@
+[Unit]
+Description=Run disk monitor every 5min every 30s
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=30s
+Unit=disk_monitor.service
+
+[Install]
+WantedBy=timers.target

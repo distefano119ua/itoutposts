@@ -1,0 +1,12 @@
+[Unit]
+Description=Monitor warning logs and send email alerts
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/log_watcher.sh
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

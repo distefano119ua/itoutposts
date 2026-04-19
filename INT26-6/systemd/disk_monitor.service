@@ -1,0 +1,6 @@
+[Unit]
+Description=disk monitor every 5min
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/disk_monitor.sh

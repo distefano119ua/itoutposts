@@ -1,0 +1,6 @@
+[Unit]
+Description=ram monitor every 5min
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ram_monitor.sh

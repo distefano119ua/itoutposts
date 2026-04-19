@@ -18,6 +18,8 @@ INT26-6/
 │   ├── ram-monitor.service      # Systemd unit для ram_monitor (створюється автотимачно завдяки install_monitors.sh)
 │   ├── ram-monitor.timer        # Systemd timer для запуску ram_monitor щогодини (створюється автотимачно завдяки install_monitors.sh)
 │   └── log-watcher.service      # Long-running service для log_watcher (створюється автотимачно завдяки install_monitors.sh)
+├── installation_logs/.          # Директорія, яка зберігає всі детальні записи для швидкого аналізу: коли було запущено, що було в цьому запуску
+│   ├── monitors_installation_log_20260419_170534.json
 └── screenshots/                 # Скріншоти результатів виконання команд та перевірок (створюється автотимачно завдяки install_monitors.sh)
     ├── inodes.png
     ├── sticky-bit.png

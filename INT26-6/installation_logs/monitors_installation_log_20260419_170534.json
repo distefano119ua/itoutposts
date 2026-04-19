@@ -1,0 +1,61 @@
+{
+  "2026-04-19 17:05:34": {
+    "monitors_count": 2,
+    "source_dir": "/home/dimitr/Desktop/outposts/monitors",
+    "log_watcher": {
+      "alert_email": "shpatakovskyid@gmail.com",
+      "sender_email": "admin@server.shpatakovskyid.pp.ua",
+      "paths": {
+        "source_script": "./log_watcher.sh",
+        "installed_script": "/usr/local/bin/log_watcher.sh",
+        "source_service": "./log_watcher.service",
+        "installed_service": "/etc/systemd/system/log_watcher.service"
+      },
+      "files": {
+        "script": "#!/bin/bash\n\nset -o pipefail\n\nDISK_LOG="/var/log/monitor/disk_monitor.log"\nRAM_LOG="/var/log/monitor/ram_monitor.log"\nEMAIL_LOG="/var/log/monitor/email_notifications>
+        "service": "[Unit]\nDescription=Monitor warning logs and send email alerts\nAfter=network.target\n\n[Service]\nType=simple\nExecStart=/usr/local/bin/log_watcher.sh\nRestart=always\nR>
+      }
+    },
+    "monitors": [
+{
+      "monitor": "disk_monitor",
+      "paths": {
+        "source_script": "/home/dimitr/Desktop/outposts/monitors/disk_monitor.sh",
+        "installed_script": "/usr/local/bin/disk_monitor.sh",
+        "source_service": "/home/dimitr/Desktop/outposts/monitors/disk_monitor.service",
+        "installed_service": "/etc/systemd/system/disk_monitor.service",
+        "source_timer": "/home/dimitr/Desktop/outposts/monitors/disk_monitor.timer",
+        "installed_timer": "/etc/systemd/system/disk_monitor.timer"
+      },
+      "settings": {
+        "description": "disk monitor every 5min",
+        "on_unit_active_sec": "30s"
+      },
+      "files": {
+        "script": "#!/bin/bash\n\ncritical_disk_usage=10\ntimestamp=$(date '+[%Y-%m-%d %H:%M:%S]')\nlog_file="/var/log/monitor/disk_monitor.log"\n\ndisk_usage=$(df -h / | awk 'NR==2 {gsub("%>
+        "service": "[Unit]\nDescription=disk monitor every 5min\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/disk_monitor.sh",
+        "timer": "[Unit]\nDescription=Run disk monitor every 5min every 30s\n\n[Timer]\nOnBootSec=1min\nOnUnitActiveSec=30s\nUnit=disk_monitor.service\n\n[Install]\nWantedBy=timers.target"
+      }
+    },\n{
+      "monitor": "ram_monitor",
+      "paths": {
+        "source_script": "/home/dimitr/Desktop/outposts/monitors/ram_monitor.sh",
+        "installed_script": "/usr/local/bin/ram_monitor.sh",
+        "source_service": "/home/dimitr/Desktop/outposts/monitors/ram_monitor.service",
+        "installed_service": "/etc/systemd/system/ram_monitor.service",
+        "source_timer": "/home/dimitr/Desktop/outposts/monitors/ram_monitor.timer",
+        "installed_timer": "/etc/systemd/system/ram_monitor.timer"
+      },
+      "settings": {
+        "description": "ram monitor every 5min",
+        "on_unit_active_sec": "30s"
+      },
+      "files": {
+        "script": "#!/bin/bash\n\ncritical_ram_usage=5\ntimestamp=$(date '+[%Y-%m-%d %H:%M:%S]')\nram_used_h=$(free -m | awk '/^Mem:/ {printf "%.1fG/%.0fG used", $3/1024, $2/1024}')\nlog_fil>
+        "service": "[Unit]\nDescription=ram monitor every 5min\n\n[Service]\nType=oneshot\nExecStart=/usr/local/bin/ram_monitor.sh",
+        "timer": "[Unit]\nDescription=Run ram monitor every 5min every 30s\n\n[Timer]\nOnBootSec=1min\nOnUnitActiveSec=30s\nUnit=ram_monitor.service\n\n[Install]\nWantedBy=timers.target"
+      }
+    }
+    ]
+  }
+}
