@@ -238,9 +238,9 @@ du --inodes -s /* 2>/dev/null | sort -nr | head
 ```
 
 
-### Sticky Bit
+### Sticky Bit 
 
-Sticky Bit — це спеціальний біт прав доступу в Linux/Unix.
+Sticky Bit — це спеціальний біт прав доступу в Linux/Unix. (див. `screenshots/sticky-bit.png`)
 
 Що він робить:
 * якщо на директорії встановлено sticky bit, то видаляти або перейменовувати файли в ній можуть лише:
