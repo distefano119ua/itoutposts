@@ -21,7 +21,6 @@ INT26-6/
 └── screenshots/                 # Скріншоти результатів виконання команд та перевірок (створюється автотимачно завдяки install_monitors.sh)
     ├── inodes.png
     ├── sticky-bit.png
-    ├── letter_header.png
     ├── received_letters.png
     ├── systemctl_monitors_status.png
 ```
