@@ -205,5 +205,5 @@ Apr 19 16:12:13 linux-server opendkim[89740]: ED9FF61414: DKIM-Signature field a
 Apr 19 16:12:14 linux-server postfix/qmgr[91151]: ED9FF61414: from=<admin@server.shpatakovskyid.pp.ua>, size=512, nrcpt=1 (queue active)
 Apr 19 16:12:15 linux-server postfix/smtp[99396]: ED9FF61414: to=<shpatakovskyid@gmail.com>, relay=smtp.gmail.com[142.251.127.108]:587, delay=1.3, delays=0.05/0.01/0.74/0.5, dsn=2.0.0, status=sent (250 2.0.0 OK  1776615135 ffacd0b85a97d-43fe4e3a341sm24258874f8f.24 - gsmtp)
 Apr 19 16:12:15 linux-server postfix/qmgr[91151]: ED9FF61414: removed
-
 ```
+Додатково надається знімок екрану `received_letters.png`
