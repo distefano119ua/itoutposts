@@ -1,6 +1,6 @@
 #!/bin/bash
 
-critical_ram_usage=5
+critical_ram_usage=85
 timestamp=$(date '+[%Y-%m-%d %H:%M:%S]')
 ram_used_h=$(free -m | awk '/^Mem:/ {printf "%.1fG/%.0fG used", $3/1024, $2/1024}')
 log_file="/var/log/monitor/ram_monitor.log"

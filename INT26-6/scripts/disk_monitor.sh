@@ -1,6 +1,6 @@
 #!/bin/bash
 
-critical_disk_usage=10
+critical_disk_usage=80
 timestamp=$(date '+[%Y-%m-%d %H:%M:%S]')
 log_file="/var/log/monitor/disk_monitor.log"
 
