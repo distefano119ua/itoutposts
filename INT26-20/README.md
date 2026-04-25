@@ -73,7 +73,7 @@ AWS/
   private-a  → 10.0.10.0/24  (AZ: us-east-1a)
   private-b  → 10.0.11.0/24  (AZ: us-east-1b)
 ```
-![alt text](image.png)
+![alt text](screenshots/image.png)
 
 ## 2. EC2 + Security Group + Elastic IP + NGINX
 
