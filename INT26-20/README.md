@@ -5,7 +5,7 @@
 Флоу для користувача:
 ```
     1. Користувач в браузері відкриває лінк: https://<your-domain-address>
-    2. Користувач бачить статичну сторінку 
+    2. Користувач бачить статичну сторінку (SSL сертифікат фіктивний!)
 ```
 
 ## 1. VPC
@@ -79,8 +79,29 @@ AWS/
 
 ## 2. EC2 + Security Group + Elastic IP + NGINX
 
+Для того щоб виконувався другий крок користувацького флоу необхідні ресурси сервера.
+Заходимо на EC2 і далі тиснемо на Launch instance:
 
-## 3. Amazon S3 + User Data
+```text
+AWS/
+│   ├── EC2 ---> Launche Instance /
+│       ├── Application and OS Images + Instance type (вибирався free tier eligible)
+│       ├── Key pair (login) ---> Create new key pair
+│           ├── Key pair name: {environment}-{project}-{resource-type}
+│           ├── Key pair type: RSA
+│           ├── Private key file format: .pem
+│
+│       ├── Network settings /
+│           ├── VPC: що створили
+│           ├── Subnet: що створили (public)
+│           ├── Auto-assign public IP: Enable
+│           ├── Firewall (security groups): Create sec group (залишив як є)
+│
+│       ├── Advanced details /
+│           ├── IAM instance profile (ви можете вибрати існуючий, але процес його створення був у наступному розділі 😅)
+```
+
+## 3. IAM Role + Amazon S3 + User Data
 
 
 ## 4. Personal domain + A Record + SSL
