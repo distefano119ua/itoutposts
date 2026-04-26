@@ -162,8 +162,8 @@ AWS (IAM)
 ```
 AWS (EC2)
 │   ├── Instances /
-│     ├── Створений EC2 --> Actions (button) --> Security --> Modify IAM role /
-│       ├── IAM role: вибрати створену Role
+│       ├── Створений EC2 --> Actions (button) --> Security --> Modify IAM role /
+│           ├── IAM role: вибрати створену Role
 ```
 
 Команда перевірки вашої ролі: `aws sts get-caller-identity`<br>
@@ -192,3 +192,25 @@ AWS (EC2)
 ```
 
 ## 4. Personal domain + A Record + SSL
+
+Personal domain створюйте, де бажаєте. Свій створив на nic.ua<br>
+Нижче буде підказка, де налаштувати там DNS.
+
+**A Record налаштування**
+```
+AWS (Route 53)
+│   ├── Hosted zones (create) /
+│     ├── Domain name: personal.domain --> create(button)
+│     ├── Records (tab) --> Create record (button) /
+│           ├── Record name (skipped): якщо наприклад вставити 'app' , то ваш personal.domain ---> app.personal.domain
+│           ├── Value: Elastic IP-address
+```
+Перевірка propagation: `dig personal.domain'
+
+**SSL сертифікат через Certbot**
+```bash
+sudo yum install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d personal.domain
+sudo certbot renew --dry-run
+```
+
