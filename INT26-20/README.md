@@ -212,7 +212,6 @@ AWS (Route 53)
 3. Вставити цю інфу в NS-сервери ---> Власні сервери імен (приклад для nic.ua)<br>
 ![alt text](screenshots/image1.png)
 
-Перевірка propagation: `dig personal.domain`
 
 **Налаштування SSL сертифікат через Certbot**
 ```bash
@@ -280,3 +279,15 @@ server {
     }
 }
 ```
+Тепер ви на етапі, коли повʼязали свій домен та aws ресурси, наступний крок<br>
+перевірка propagation: `dig personal.domain`, має побачити ip-address вашого Elastic IP.
+
+**ФІНАЛЬНА ПЕРЕВІРКА:**
+`https://personal.domain  →  HTML сторінка + зелений замок` ---> /screenshots/https_index.png
+
+
+## 5. Cleanup: NAT Gateway & Elastic IP
+
+1. NAT Gateways: VPC --> NAT GW --> Actions (button): `Delete NAT Gateway`<br>
+2. EC2 Instance: Instance --> Instance state (button): `Stop instance`<br>
+3. Elastic IP: Actions (button): `Dissociate Elastic IP address`, потім `Release Elastic IP addresses`
