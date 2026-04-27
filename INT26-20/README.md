@@ -205,12 +205,40 @@ AWS (Route 53)
 │           ├── Record name (skipped): якщо наприклад вставити 'app' , то ваш personal.domain ---> app.personal.domain
 │           ├── Value: Elastic IP-address
 ```
-Перевірка propagation: `dig personal.domain'
+Перевірка propagation: `dig personal.domain`
 
-**SSL сертифікат через Certbot**
+**Налаштування SSL сертифікат через Certbot**
 ```bash
 sudo yum install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d personal.domain
 sudo certbot renew --dry-run
 ```
 
+На цьому етапі в мене виникла помилка:
+```
+Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 1
+Deploying certificate
+Could not install certificate
+
+NEXT STEPS:
+- The certificate was saved, but could not be installed (installer: nginx). After fixing the error shown below, try installing it again by running:
+  certbot install --cert-name personal.domain
+
+Could not automatically find a matching server block for personal.domain. Set the server_name directive to use the Nginx installer.
+Ask for help or search for solutions at https://community.letsencrypt.org. See the logfile /var/log/letsencrypt/letsencrypt.log or re-run Certbot with -v for more details.
+```
+
+Причина помилки, бо в конфігє Nginx немає server block с "server_name personal.domain".<br>
+У цьому випадку я створив окремий файл конфіг: `sudo nano /etc/nginx/conf.d/personal.domain.conf`:<br>
+```
+server {
+    listen 80;
+    server_name personal.domain;
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+    location / {
+
+        try_files $uri $uri/ =404;
+    }
+}
+```
