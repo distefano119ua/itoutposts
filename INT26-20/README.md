@@ -205,6 +205,13 @@ AWS (Route 53)
 │           ├── Record name (skipped): якщо наприклад вставити 'app' , то ваш personal.domain ---> app.personal.domain
 │           ├── Value: Elastic IP-address
 ```
+
+Коли створили профайл Hosted zone та A Record для вашого `personal.domain`:<br>
+1. Знайти рядок з `Type: NS`<br>
+2. Скопіювати інфу з колонки `Value/Route traffic to`<br>
+3. Вставити цю інфу в NS-сервери ---> Власні сервери імен (приклад для nic.ua)<br>
+![alt text](screenshots/image1.png)
+
 Перевірка propagation: `dig personal.domain`
 
 **Налаштування SSL сертифікат через Certbot**
@@ -237,7 +244,38 @@ server {
     root /usr/share/nginx/html;
     index index.html index.htm;
     location / {
+        try_files $uri $uri/ =404;
+    }
+}
+```
 
+Далі по списку:
+1. `sudo nginx -t` *if syntax is ok* та *test is successful*<br>
+2. `sudo systemctl reload nginx`<br>
+3. `curl -I http://personal.domain`<br>
+4. `sudo certbot install --cert-name personal.domain`<br>
+5. `curl -I https://personal.domain`<br>
+6. `sudo certbot renew --dry-run`
+
+Що має бути в `/etc/nginx/conf.d/personal.domain.conf`:<br>
+```
+server {
+    listen 80;
+    server_name personal.domain;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name personal.domain;
+
+    root /usr/share/nginx/html;
+    index index.html index.htm;
+
+    ssl_certificate /etc/letsencrypt/live/personal.domain/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/personal.domain/privkey.pem;
+
+    location / {
         try_files $uri $uri/ =404;
     }
 }
