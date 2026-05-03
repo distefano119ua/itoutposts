@@ -1,0 +1,16 @@
+services:
+  monitor-api:
+    build: .
+    container_name: monitor-api
+    ports:
+      - "7777:7000"
+
+    env_file:
+      - .env
+    
+    volumes:
+      - ./src/app/logs:/app/logs
+
+networks:
+  itouposts-network:
+    driver: bridge
