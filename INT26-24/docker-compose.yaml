@@ -7,7 +7,7 @@ services:
       - "7777:7000"
 
     env_file:
-      - .env
+      - .env.example
     
     volumes:
       - ./src/app/logs:/app/logs
@@ -25,8 +25,6 @@ services:
 
 volumes:
   mongo_data:
-  external: true
-  name: mongo_data
 
 networks:
   itouposts-network:
