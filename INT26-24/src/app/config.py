@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    """Application configuration settings."""
     app_logs_path: str
     alert_email: str
     service_name: str
