@@ -129,3 +129,8 @@ async def lifespan(app: FastAPI):
         mongo_client.close()
 
 app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
