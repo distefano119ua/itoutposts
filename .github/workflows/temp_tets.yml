@@ -1,0 +1,31 @@
+name: INT26-24 tests
+
+on:
+  push:
+    paths:
+      - "INT26-24/**"
+  pull_request:
+    paths:
+      - "INT26-24/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: INT26-24
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Install ruff
+        run: pip install ruff
+      
+      - name: Check code with ruff
+        run: ruff check . --select E,F,W,I,S
