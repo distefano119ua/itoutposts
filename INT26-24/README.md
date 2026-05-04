@@ -1,0 +1,1 @@
+![AWS ECR screenshot:](screenshots/ecr_images.png)
