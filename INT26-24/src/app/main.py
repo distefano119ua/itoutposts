@@ -5,7 +5,7 @@ import asyncio
 import json
 
 from motor.motor_asyncio import AsyncIOMotorClient
-from pymongo.errors import PyMongoError, ServerSelectionTimeoutError
+from pymongo.errors import PyMongoError
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -60,7 +60,6 @@ async def check_logs() -> None:
 async def save_error_to_db(error_data: dict) -> None:
     if mongo_client is None:
         raise RuntimeError("MongoDB client is not initialized.")
-    
     db = mongo_client[DB_NAME]
     collection = db[COLLECTION_NAME]
     await collection.insert_one(error_data)
@@ -77,6 +76,7 @@ async def save_error_to_file(error_data: dict) -> None:
             )
             + "\n"
         )
+
 
 async def check_mongodb_connection() -> bool:
     if mongo_client is None:
@@ -109,7 +109,6 @@ async def lifespan(app: FastAPI):
                 "created_at": datetime.now(timezone.utc),
             }
         )
-    
     scheduler.add_job(
         check_logs,
         trigger="interval",
