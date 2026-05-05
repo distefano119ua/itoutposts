@@ -1,0 +1,53 @@
+name: INT26-30 homework
+
+on:
+  push:
+    paths:
+      - "INT26-24/**"
+      - ".github/workflows/INT26-30.yml"
+  pull_request:
+    paths:
+      - "INT26-24/**"
+      - ".github/workflows/INT26-30.yml"
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    defaults:
+      run:
+        working-directory: INT26-24
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose -p itouposts-network -f docker-compose.ci.yaml up -d --build
+
+      - name: Check API health
+        run: |
+            for i in {1..10}; do
+              if curl -s http://localhost:7777/health | grep -q "ok"; then
+                echo "API is healthy!"
+                exit 0
+              else
+                echo "Waiting for API to be healthy..."
+                sleep 2
+              fi
+            done
+            echo "API did not become healthy in time."
+            exit 1
+
+      - name: Check MongoDB
+        run: |
+            docker compose -p itouposts-network -f docker-compose.ci.yaml exec -T mongodb \
+              mongosh --eval "db.adminCommand('ping')"
+      
+      - name: Stop services
+        run: docker compose -p itouposts-network -f docker-compose.ci.yaml down
