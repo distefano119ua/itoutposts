@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose -p itouposts-network -f docker-compose.yaml up -d --build
+        run: docker compose -p itouposts-network -f docker-compose.yaml up -d
 
       - name: Check API health
         run: curl -fs http://localhost:7777/health
