@@ -27,31 +27,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build app container
-        run: docker build -t int26-24-app .
+      - name: Start services
+        run: docker-compose -p itouposts-network -f docker-compose.yaml up -d --build
 
-      - name: Run app container
+      - name: Check API health
         run: |
-          docker run -d \
-            --name int26-24-app \
-            --network host \
-            --env-file .env.example \
-            -e MONGO_URL=mongodb://localhost:27017 \
-            int26-24-app
-
-      - name: Check FastAPI health
-        run: |
-          for i in {1..20}; do
-            if curl -fs http://localhost:7000/health; then
+          for i in {1..5}; do
+            if curl -s http://localhost:7777/health | grep -q "ok"; then
+              echo "API is healthy!"
               exit 0
+            else
+              echo "Waiting for API to be healthy..."
+              sleep 5
             fi
-            sleep 2
           done
-
-          docker logs int26-24-app
+          echo "API did not become healthy in time."
           exit 1
 
       - name: Check MongoDB
         run: |
-          docker run --rm --network host mongo:7 \
-            mongosh mongodb://localhost:27017 --eval "db.adminCommand('ping')"
+            docker compose exec -T mongodb \
+              mongosh --eval "db.adminCommand('ping')"
+      
+      - name: Stop services
+        run: docker-compose -p itouposts-network -f docker-compose.yaml down
