@@ -50,4 +50,4 @@ jobs:
               mongosh --eval "db.adminCommand('ping')"
       
       - name: Stop services
-        run: docker-compose -p itouposts-network -f docker-compose.yaml down
+        run: docker compose -p itouposts-network -f docker-compose.yaml down
