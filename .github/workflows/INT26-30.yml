@@ -28,15 +28,15 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Start services
-        run: docker compose -p itouposts-network -f docker-compose.yaml up -d
+        run: docker compose -p itouposts-network -f docker-compose.ci.yaml up -d
 
       - name: Check API health
         run: curl -fs http://localhost:7777/health
 
       - name: Check MongoDB
         run: |
-            docker compose -p itouposts-network -f docker-compose.yaml exec -T mongodb \
+            docker compose -p itouposts-network -f docker-compose.ci.yaml exec -T mongodb \
               mongosh --eval "db.adminCommand('ping')"
       
       - name: Stop services
-        run: docker compose -p itouposts-network -f docker-compose.yaml down
+        run: docker compose -p itouposts-network -f docker-compose.ci.yaml down

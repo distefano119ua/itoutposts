@@ -1,3 +1,29 @@
 services:
+  monitor-api:
+    build: .
+    container_name: monitor-api
+    restart: unless-stopped
+    ports:
+      - "7777:7000"
+
+    env_file:
+      - .env.example
+    
+    volumes:
+      - ./src/app/logs:/app/logs
+      - /:/host:ro,rslave
+      - /proc:/host/proc:ro
+
   mongodb:
-    ports: []
+    image: mongo:7
+    container_name: monitor-mongodb
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:
+
+networks:
+  itouposts-network:
+    driver: bridge
