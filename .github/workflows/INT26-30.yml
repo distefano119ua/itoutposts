@@ -35,6 +35,7 @@ jobs:
           docker run -d \
             --name int26-24-app \
             --network host \
+            --env-file .env.example \
             -e MONGO_URL=mongodb://localhost:27017 \
             int26-24-app
 
