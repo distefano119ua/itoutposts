@@ -1,0 +1,56 @@
+name: INT26-30 homework
+
+on:
+  push:
+    paths:
+      - "INT26-24/**"
+      - ".github/workflows/INT26-30.yml"
+  pull_request:
+    paths:
+      - "INT26-24/**"
+      - ".github/workflows/INT26-30.yml"
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+
+    defaults:
+      run:
+        working-directory: INT26-24
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build app container
+        run: docker build -t int26-24-app .
+
+      - name: Run app container
+        run: |
+          docker run -d \
+            --name int26-24-app \
+            --network host \
+            -e MONGO_URL=mongodb://localhost:27017 \
+            int26-24-app
+
+      - name: Check FastAPI health
+        run: |
+          for i in {1..20}; do
+            if curl -fs http://localhost:7000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          docker logs int26-24-app
+          exit 1
+
+      - name: Check MongoDB
+        run: |
+          docker run --rm --network host mongo:7 \
+            mongosh mongodb://localhost:27017 --eval "db.adminCommand('ping')"
