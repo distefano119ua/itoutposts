@@ -18,4 +18,4 @@ COPY src/app/ /app/
 
 RUN chmod +x /app/monitor/disk_monitor.sh /app/monitor/ram_monitor.sh
 
-CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7000"]
