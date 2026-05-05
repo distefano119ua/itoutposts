@@ -1,18 +1,15 @@
-from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Any
 import asyncio
 import json
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from config import settings
+from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
-from pathlib import Path
-
-from fastapi import FastAPI
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
-from config import settings
-
 
 scheduler = AsyncIOScheduler()
 
