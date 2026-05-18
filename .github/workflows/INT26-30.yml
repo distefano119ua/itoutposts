@@ -10,6 +10,10 @@ on:
       - "INT26-24/**"
       - ".github/workflows/INT26-30.yml"
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   integration:
     runs-on: ubuntu-latest
@@ -48,6 +52,28 @@ jobs:
         run: |
             docker compose -p itouposts-network -f docker-compose.ci.yaml exec -T mongodb \
               mongosh --eval "db.adminCommand('ping')"
+
+      # После проверок — логин в registry
+      - name: Login to GitHub Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      # После логина — сборка и публикация образа
+      - name: Build and push image      
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./INT26-24
+          file: ./INT26-24/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/itouposts:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/itouposts:latest
       
       - name: Stop services
+        if: always()
         run: docker compose -p itouposts-network -f docker-compose.ci.yaml down
