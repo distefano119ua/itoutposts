@@ -1,0 +1,70 @@
+services:
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: monitor-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - monitor-frontend
+      - monitor-api
+    networks:
+      - itouposts-network
+
+  monitor-api:
+    build: .
+    container_name: monitor-api
+    restart: unless-stopped
+    ports:
+      - "7777:7000"
+    env_file:
+      - .env.example
+    volumes:
+      - ./src/app/logs:/app/logs
+      - /:/host:ro,rslave
+      - /proc:/host/proc:ro
+      
+    depends_on:
+      - mongodb
+    networks:
+      - itouposts-network
+
+  monitor-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: monitor-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:7777
+    depends_on:
+      - monitor-api
+    networks:
+      - itouposts-network
+
+  mongodb:
+    image: mongo:7
+    container_name: monitor-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - itouposts-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mongo_data:
+
+networks:
+  itouposts-network:
+    driver: bridge

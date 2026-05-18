@@ -9,6 +9,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "fastapi[standard]>=0.136.1",
     "motor>=3.7.1",
+    "polars>=1.40.1",
     "pydantic>=2.13.3",
     "pydantic-settings>=2.14.0",
     "pymongo>=4.17.0",

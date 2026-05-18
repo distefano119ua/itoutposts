@@ -6,10 +6,14 @@ from pathlib import Path
 from typing import Any
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from cars.router import get_mongo_client, router as cars_router
+from cars.service import load_cars_csv_to_mongodb
 from config import settings
 from fastapi import FastAPI
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
+
+from fastapi.middleware.cors import CORSMiddleware
 
 scheduler = AsyncIOScheduler()
 
@@ -83,6 +87,16 @@ async def check_mongodb_connection() -> bool:
         return True
     except PyMongoError:
         return False
+    
+
+async def provide_mongo_client() -> AsyncIOMotorClient:
+    """
+    Реальная dependency для cars.router.
+    """
+    if mongo_client is None:
+        raise RuntimeError("MongoDB client is not initialized.")
+
+    return mongo_client
 
 
 @asynccontextmanager
@@ -106,6 +120,25 @@ async def lifespan(app: FastAPI):
                 "created_at": datetime.now(timezone.utc),
             }
         )
+
+    else:
+        try:
+            import_result = await load_cars_csv_to_mongodb()
+            print(
+                "[cars_csv_import] Import result:",
+                json.dumps(import_result, default=str, ensure_ascii=False)
+            )
+
+        except Exception as e:
+            await save_error_to_file(
+                {
+                    "service": settings.service_name,
+                    "type": "cars_csv_import_error",
+                    "message": str(e),
+                    "created_at": datetime.now(timezone.utc),
+                }
+            )
+
     scheduler.add_job(
         check_logs,
         trigger="interval",
@@ -126,6 +159,20 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost",
+        "http://localhost:5173",
+        "http://localhost:7777",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.dependency_overrides[get_mongo_client] = provide_mongo_client
+app.include_router(cars_router)
 
 @app.get("/health")
 async def health_check():

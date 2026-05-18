@@ -11,8 +11,9 @@ services:
     
     volumes:
       - ./src/app/logs:/app/logs
-      - /:/host:ro,rslave
-      - /proc:/host/proc:ro
+      - ./src/app/cars:/app/cars
+      #- /:/host:ro,rslave
+      #- /proc:/host/proc:ro
 
   mongodb:
     image: mongo:7
