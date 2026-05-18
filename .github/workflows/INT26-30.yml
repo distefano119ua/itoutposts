@@ -63,7 +63,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       
       # После логина — сборка и публикация образа
-      - name: Build and push image      
+      - name: Build and push backend image      
         if: github.event_name == 'push'
         uses: docker/build-push-action@v6
         with:
@@ -71,8 +71,20 @@ jobs:
           file: ./INT26-24/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}/itouposts:${{ github.sha }}
-            ghcr.io/${{ github.repository }}/itouposts:latest
+            ghcr.io/${{ github.repository }}/backend:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/backend:1.0.1
+      
+      # После логина — сборка и публикация образа
+      - name: Build and push frontend image      
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
+        with:
+          context: ./INT26-24/frontend
+          file: ./INT26-24/frontend/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/frontend:${{ github.sha }}
+            ghcr.io/${{ github.repository }}/frontend:1.0.0
       
       - name: Stop services
         if: always()
