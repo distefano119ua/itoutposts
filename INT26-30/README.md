@@ -1,1 +1,1 @@
-![Github Actions screen:](img1.png)
+![Github Actions screen:](gh_actions.png)
