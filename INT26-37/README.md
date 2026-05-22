@@ -173,7 +173,7 @@ backend_image: "{{ public_registry }}/backend:fe1fa430e48f5f79aedb72231a4510cce3
 
 ## Код застосунку
 
-Код застосунку: `[<посилання-на-репозиторій>](https://github.com/distefano119ua/itoutposts/tree/main/INT26-24)`.
+[<посилання-на-репозиторій>](https://github.com/distefano119ua/itoutposts/tree/main/INT26-24)
 
 ## Приклад запуску
 
