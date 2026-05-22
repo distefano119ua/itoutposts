@@ -1,0 +1,12 @@
+[public_servers]
+public ansible_host=public_subnet.ip.address.ec2
+
+[private_servers]
+private ansible_host=private_subnet.ip.address.ec2
+
+[private_servers:vars]
+ansible_ssh_common_args='-o ProxyJump=username@public_subnet.ip.address.ec2 -o ForwardAgent=yes'
+
+[aws_servers:children]
+public_servers
+private_servers

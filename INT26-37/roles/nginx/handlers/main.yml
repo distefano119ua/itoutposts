@@ -1,0 +1,8 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Restart nginx container
+  command: docker compose restart nginx
+  args:
+    chdir: "{{ app_dir }}"
+  listen: Restart nginx container
+  failed_when: false

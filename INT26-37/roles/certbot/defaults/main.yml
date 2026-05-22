@@ -1,0 +1,5 @@
+#SPDX-License-Identifier: MIT-0
+---
+certbot_webroot_dir: "{{ app_dir }}/certbot/www"
+certbot_conf_dir: /etc/letsencrypt
+

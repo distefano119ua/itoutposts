@@ -1,0 +1,41 @@
+---
+ansible_user : ubuntu
+ansible_ssh_private_key_file : /path/to/key-pair.pem
+
+app_dir: /opt/monitor-app
+public_registry: ghcr.io/distefano119ua/itoutposts
+
+nginx_image: nginx:1.27-alpine
+frontend_image: "{{ public_registry }}/frontend:80d95db5d6b8730b8e093df1a9855d02d640d4e1"
+backend_image: "{{ public_registry }}/backend:fe1fa430e48f5f79aedb72231a4510cce3eca90b"
+
+nginx_container_name: monitor-nginx
+frontend_container_name: monitor-frontend
+backend_container_name: monitor-api
+
+app_network_name: itouposts-network
+
+nginx_public_port: 80
+nginx_https_port: 443
+
+frontend_public_port: 5173
+frontend_internal_port: 5173
+
+backend_public_port: 7777
+backend_internal_port: 7000
+
+frontend_api_url: /api
+
+mongo_private_ip: private_subnet.ip.address.ec2
+mongo_uri: "mongodb://{{ mongo_private_ip }}:27017"
+
+app_logs_path: /app/logs
+alert_email: test@gmail.com
+service_name: ITOUTPOSTS
+db_name: monitoring
+collection_name: script_errors
+dataset_slug: abdulmalik1518/cars-datasets-2025
+csv_name: Cars Datasets 2025.csv
+
+domain_name: your.domain
+certbot_email: your.email@mail.com

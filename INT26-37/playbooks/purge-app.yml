@@ -1,0 +1,113 @@
+---
+- name: Completely purge Docker from Ubuntu
+  hosts: aws_servers
+  become: yes
+
+  tasks:
+    - name: Stop all running Docker containers
+      shell: docker ps -q | xargs -r docker stop
+      ignore_errors: yes
+
+    - name: Remove all Docker containers
+      shell: docker ps -aq | xargs -r docker rm -f
+      ignore_errors: yes
+
+    - name: Remove all Docker images
+      shell: docker images -q | xargs -r docker rmi -f
+      ignore_errors: yes
+
+    - name: Remove all Docker volumes
+      shell: docker volume ls -q | xargs -r docker volume rm -f
+      ignore_errors: yes
+
+    - name: Remove custom Docker networks
+      shell: |
+        docker network ls --format '{{ "{{" }}.Name{{ "}}" }}' \
+        | grep -vE '^(bridge|host|none)$' \
+        | xargs -r docker network rm
+      ignore_errors: yes
+
+    - name: Stop and disable Docker service
+      service:
+        name: docker
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: Stop and disable containerd service
+      service:
+        name: containerd
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: Remove Docker packages
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+          - docker-ce-rootless-extras
+          - docker.io
+          - docker-doc
+          - docker-compose
+          - docker-compose-v2
+          - podman-docker
+          - containerd
+          - runc
+        state: absent
+        purge: yes
+        autoremove: yes
+      ignore_errors: yes
+
+    - name: Remove Docker apt repository
+      file:
+        path: /etc/apt/sources.list.d/docker.list
+        state: absent
+
+    - name: Remove Docker GPG key
+      file:
+        path: /etc/apt/keyrings/docker.asc
+        state: absent
+
+    - name: Remove Docker directories and files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/docker
+        - /var/lib/containerd
+        - /etc/docker
+        - /etc/systemd/system/docker.service.d
+        - /usr/local/lib/docker
+        - /usr/local/bin/docker-compose
+        - /usr/bin/docker-compose
+        - /root/.docker
+
+    - name: Reload systemd
+      systemd:
+        daemon_reload: yes
+      ignore_errors: yes
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+      ignore_errors: yes
+
+    - name: Verify Docker is removed
+      command: docker --version
+      register: docker_check
+      failed_when: false
+      changed_when: false
+
+    - name: Show Docker removal result
+      debug:
+        msg: "Docker removed successfully"
+      when: docker_check.rc != 0
+
+    - name: Show warning if Docker still exists
+      debug:
+        msg: "Docker command still exists: {{ docker_check.stdout }}"
+      when: docker_check.rc == 0

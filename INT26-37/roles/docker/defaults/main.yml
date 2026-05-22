@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+docker_old_packages:
+  - docker.io
+  - docker-doc
+  - docker-compose
+  - docker-compose-v2
+  - podman-docker
+  - containerd
+  - runc
+
+docker_required_packages:
+  - ca-certificates
+  - curl
+  - gnupg
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+docker_gpg_key_url: https://download.docker.com/linux/ubuntu/gpg
+docker_gpg_key_path: /etc/apt/keyrings/docker.asc

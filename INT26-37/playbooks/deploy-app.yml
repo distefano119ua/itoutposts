@@ -1,0 +1,56 @@
+---
+- name: Install Docker Engine and Docker Compose Plugin on Ubuntu servers
+  hosts: aws_servers
+  become: yes
+  roles:
+    - role: docker
+      tags: docker
+
+- name: Deploy MongoDB on private server
+  hosts: private_servers
+  become: yes
+  roles:
+    - role: mongodb
+      tags: mongodb
+
+- name: Deploy public monitoring stack with HTTP nginx
+  hosts: public_servers
+  become: yes
+  roles:
+    - role: nginx
+      tags: nginx
+
+    - role: monitoring
+      tags: monitoring
+
+    - role: frontend
+      tags: frontend
+
+    - role: compose_app
+      tags: compose_app
+
+    - role: certbot
+      tags: certbot
+
+- name: Encrypt certificate
+  hosts: public_servers
+  become: yes
+  roles:
+    - role: certbot
+      tags: certbot
+
+- name: Switch nginx to HTTPS
+  hosts: public_servers
+  become: yes
+  vars:
+    nginx_config_mode: https
+  roles:
+    - role: nginx
+      tags: nginx_https
+
+  tasks:
+    - name: Restart nginx after HTTPS config
+      command: docker compose restart nginx
+      args:
+        chdir: "{{ app_dir }}"
+      tags: nginx_https

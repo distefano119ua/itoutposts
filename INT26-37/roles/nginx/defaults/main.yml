@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+app_dir: /opt/monitor-app
+nginx_image: nginx:1.27-alpine
+nginx_container_name: monitor-nginx
+nginx_network_name: itouposts-network
+nginx_port: 80
