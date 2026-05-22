@@ -10,7 +10,7 @@
 
 Додавання A-запису для домену через Route 53 також було реалізовано раніше:
 
-[Налаштування DNS через Route 53](https://github.com/distefano119ua/itoutposts/tree/main/INT26-20#4-personal-domain--a-record--ssl)
+[Налаштування DNS через Route 53](https://github.com/distefano119ua/itoutposts/tree/main/INT26-20#4-personal-domain--a-record--ssl) 4. Personal domain + A Record + SSL
 
 ## Ansible automation
 
