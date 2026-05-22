@@ -182,3 +182,6 @@ backend_image: "{{ public_registry }}/backend:fe1fa430e48f5f79aedb72231a4510cce3
 ```bash
 asciinema play ansible-automation.rec
 ```
+
+а також у записі екрану
+[Переглянути demo video](./ansible-automation.mp4)
