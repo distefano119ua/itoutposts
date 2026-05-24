@@ -362,3 +362,14 @@ force_destroy = true
 - Не комітьте Terraform state files у Git.
 - Не зберігайте AWS credentials у репозиторії.
 - Перевіряйте Security Groups перед деплоєм у production-середовище.
+
+## Definition of Done
+[ Done ] S3 bucket створені через Terraform
+[ Done ] VPC (або модуль) підняті через Terraform
+[ Done ] EC2 запущена, SSH ключ збережений локально в keys/
+[ Done ] keys/ папка в .gitignore
+[ Done ] Output ssh_command містить готову команду для підключення `cd project/servers && terraform output ssh_command: "ssh -i ./keys/id_rsa ubuntu@34.200.240.133"'
+[ Done ] Підключення до сервера через terraform output ssh_command працює
+[ Done ] Ansible playbook запускається автоматично після terraform apply
+[ Done ] Сервер налаштований (Docker + застосунок) — підтверджено через docker ps
+[ Done ] README з описом структури проєкту
