@@ -1,0 +1,56 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Create MongoDB project directory
+  file:
+    path: "{{ mongodb_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create MongoDB docker-compose.yml
+  copy:
+    dest: "{{ mongodb_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      services:
+        mongodb:
+          image: {{ mongodb_image }}
+          container_name: {{ mongodb_container_name }}
+          restart: unless-stopped
+          ports:
+            - "{{ mongodb_port }}:27017"
+          volumes:
+            - {{ mongodb_volume_name }}:/data/db
+          networks:
+            - {{ mongodb_network_name }}
+          logging:
+            driver: "json-file"
+            options:
+              max-size: "10m"
+              max-file: "3"
+
+      volumes:
+        {{ mongodb_volume_name }}:
+
+      networks:
+        {{ mongodb_network_name }}:
+          driver: bridge
+
+- name: Pull MongoDB image
+  command: docker compose pull
+  args:
+    chdir: "{{ mongodb_dir }}"
+
+- name: Start MongoDB
+  command: docker compose up -d
+  args:
+    chdir: "{{ mongodb_dir }}"
+
+- name: Show MongoDB status
+  command: docker compose ps
+  args:
+    chdir: "{{ mongodb_dir }}"
+  changed_when: false

@@ -1,0 +1,25 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Create app directory
+  file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create API logs directory
+  file:
+    path: "{{ app_dir }}/logs"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create app environment file
+  template:
+    src: env.j2
+    dest: "{{ app_dir }}/.env.example"
+    owner: root
+    group: root
+    mode: "0600"

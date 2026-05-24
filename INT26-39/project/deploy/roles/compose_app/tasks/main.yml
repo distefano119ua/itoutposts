@@ -1,0 +1,40 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Create docker-compose.yml for public app
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ app_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0644"
+
+
+- name: Pull public app images
+  command: docker compose pull
+  args:
+    chdir: "{{ app_dir }}"
+
+- name: Stop host nginx if installed
+  service:
+    name: nginx
+    state: stopped
+    enabled: no
+  failed_when: false
+
+- name: Stop existing public app compose project
+  command: docker compose down --remove-orphans
+  args:
+    chdir: "{{ app_dir }}"
+  failed_when: false
+  changed_when: false
+
+- name: Start public app
+  command: docker compose up -d
+  args:
+    chdir: "{{ app_dir }}"
+
+- name: Show public app containers
+  command: docker compose ps
+  args:
+    chdir: "{{ app_dir }}"
+  changed_when: false

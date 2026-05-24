@@ -1,0 +1,8 @@
+#SPDX-License-Identifier: MIT-0
+---
+mongodb_dir: /opt/mongodb
+mongodb_image: mongo:7
+mongodb_container_name: monitor-mongodb
+mongodb_port: 27017
+mongodb_volume_name: mongo_data
+mongodb_network_name: mongo-network

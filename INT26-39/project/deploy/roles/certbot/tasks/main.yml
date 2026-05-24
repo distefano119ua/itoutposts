@@ -1,0 +1,62 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Check required certbot variables
+  assert:
+    that:
+      - app_dir is defined
+      - domain_name is defined
+      - certbot_email is defined
+      - certbot_webroot_dir is defined
+    fail_msg: "app_dir, domain_name, certbot_email and certbot_webroot_dir must be defined"
+
+- name: Install Certbot on Ubuntu/Debian
+  apt:
+    name:
+      - certbot
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Create certbot webroot directory
+  file:
+    path: "{{ certbot_webroot_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create certbot challenge directory
+  file:
+    path: "{{ certbot_webroot_dir }}/.well-known/acme-challenge"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create test challenge file
+  copy:
+    dest: "{{ certbot_webroot_dir }}/.well-known/acme-challenge/test.txt"
+    content: "certbot-test\n"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Request Let's Encrypt certificate using webroot
+  command: >
+    certbot certonly
+    --webroot
+    --webroot-path {{ certbot_webroot_dir }}
+    --email {{ certbot_email }}
+    --agree-tos
+    --no-eff-email
+    -d {{ domain_name }}
+  args:
+    creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+  notify: Restart nginx container
+
+- name: Add certbot renew cron job
+  cron:
+    name: Renew Let's Encrypt certificates
+    minute: "0"
+    hour: "3"
+    job: "certbot renew --quiet && cd {{ app_dir }} && docker compose restart nginx"

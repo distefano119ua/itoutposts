@@ -3,10 +3,10 @@ provider "aws" {
 }
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket        = "dev-terraform-state-int26-39"
+  bucket        = "dev-terraform-state-int26-39" # Ensemble unique name for the bucket
   force_destroy = false # Set to true if you want to allow deletion of the bucket even if it contains objects
   tags = {
-    Name = "dev-terraform-state-int26-39"
+    Name = "dev-terraform-state-int26-39" # Tag for identification
   }
 }
 
