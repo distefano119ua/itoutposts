@@ -68,6 +68,51 @@ nginx-demo-svc-bm2ww   IPv4          80      192.168.126.1,192.168.194.70   4m32
 ```
 ![Перевірка доступу з Master-node та Host](./screenshots/curl_to_nginx.png)
 
+Scaling: 
+```
+[dimitr@k8s-master$] kubectl get pods -n test-zastosunok -o wide
+NAME                          READY   STATUS    RESTARTS   AGE     IP               NODE          NOMINATED NODE   READINESS GATES
+nginx-demo-757ddcf8d5-6kcjr   1/1     Running   0          4h50m   192.168.126.1    k8s-worker2   <none>           <none>
+nginx-demo-757ddcf8d5-7bc85   1/1     Running   0          4h50m   192.168.194.70   k8s-worker1   <none>           <none>
+
+[dimitr@k8s-master$] kubectl scale deployment nginx-demo -n test-zastosunok --replicas=5
+deployment.apps/nginx-demo scaled
+
+[dimitr@k8s-master$] kubectl get pods -n test-zastosunok -o wide
+NAME                          READY   STATUS    RESTARTS   AGE     IP               NODE          NOMINATED NODE   READINESS GATES
+nginx-demo-757ddcf8d5-5xhgc   0/1     Running   0          7s      192.168.194.71   k8s-worker1   <none>           <none>
+nginx-demo-757ddcf8d5-6kcjr   1/1     Running   0          4h50m   192.168.126.1    k8s-worker2   <none>           <none>
+nginx-demo-757ddcf8d5-7bc85   1/1     Running   0          4h50m   192.168.194.70   k8s-worker1   <none>           <none>
+nginx-demo-757ddcf8d5-gfd9l   0/1     Running   0          7s      192.168.126.3    k8s-worker2   <none>           <none>
+nginx-demo-757ddcf8d5-mzx74   0/1     Running   0          7s      192.168.126.2    k8s-worker2   <none>           <none>
+
+[dimitr@k8s-master$] kubectl get deployment nginx-demo -n test-zastosunok
+NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-demo   3/5     5            3           4h51m
+
+[dimitr@k8s-master$] kubectl get endpointslices -n test-zastosunok
+NAME                   ADDRESSTYPE   PORTS   ENDPOINTS                                                AGE
+nginx-demo-svc-bm2ww   IPv4          80      192.168.126.1,192.168.194.70,192.168.126.2 + 2 more...   16m
+
+[dimitr@k8s-master$] kubectl get pods -n test-zastosunok -o wide
+NAME                          READY   STATUS             RESTARTS      AGE     IP               NODE          NOMINATED NODE   READINESS GATES
+nginx-demo-757ddcf8d5-5xhgc   1/1     Running            0             4m53s   192.168.194.71   k8s-worker1   <none>           <none>
+nginx-demo-757ddcf8d5-6kcjr   1/1     Running            0             4h55m   192.168.126.1    k8s-worker2   <none>           <none>
+nginx-demo-757ddcf8d5-7bc85   1/1     Running            0             4h55m   192.168.194.70   k8s-worker1   <none>           <none>
+nginx-demo-757ddcf8d5-gfd9l   0/1     CrashLoopBackOff   5 (52s ago)   4m53s   192.168.126.3    k8s-worker2   <none>           <none>
+nginx-demo-757ddcf8d5-mzx74   0/1     CrashLoopBackOff   5 (52s ago)   4m53s   192.168.126.2    k8s-worker2   <none>           <none>
+
+[dimitr@k8s-master$] kubectl scale deployment nginx-demo -n test-zastosunok --replicas=3
+deployment.apps/nginx-demo scaled
+
+[dimitr@k8s-master$] kubectl get pods -n test-zastosunok -o wide
+NAME                          READY   STATUS    RESTARTS   AGE     IP               NODE          NOMINATED NODE   READINESS GATES
+nginx-demo-757ddcf8d5-5xhgc   1/1     Running   0          5m4s    192.168.194.71   k8s-worker1   <none>           <none>
+nginx-demo-757ddcf8d5-6kcjr   1/1     Running   0          4h55m   192.168.126.1    k8s-worker2   <none>           <none>
+nginx-demo-757ddcf8d5-7bc85   1/1     Running   0          4h55m   192.168.194.70   k8s-worker1   <none>           <none>
+```
+![Перевірка доступу з Master-node та Host](./screenshots/curl_to_worker_nginx.png)
+
 
 - Мігрувати власний Docker-образ зі свого registry (imagePullSecrets + ConfigMap/Secret)
 
