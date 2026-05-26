@@ -3,7 +3,7 @@
 ## Зміст
 
 1 мастер та 2 воркери
-![k8s-clustrer:](k8s-cluster.png)
+![k8s-clustrer:](./screenshots/k8s-cluster.png)
 ---
 
 ## Розгорнути Kubernetes кластер вручну (kubeadm), підключити worker ноду та задеплоїти застосунок із власного Docker Registry
@@ -40,7 +40,7 @@ kubeadm join 192.168.56.10:6443 --token 9k8as9.uk9jkq6tslo3sdd \
 ![Deployment](./deployments/nginx-config.yaml)
 
 ```
-kubectl get deployment,rs,pod -n test-zastosunok -o wide
+[dimitr@k8s-master$] kubectl get deployment,rs,pod -n test-zastosunok -o wide
 NAME                         READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES       SELECTOR
 deployment.apps/nginx-demo   2/2     2            2           21m   nginx        nginx:1.25   app=nginx-demo
 
@@ -52,6 +52,22 @@ pod/nginx-demo-757ddcf8d5-6kcjr   1/1     Running   0          21m   192.168.126
 pod/nginx-demo-757ddcf8d5-7bc85   1/1     Running   0          21m   192.168.194.70   k8s-worker1   <none>           <none>
 
 ```
+
+![Service](./services/nginx-service.yaml)
+```
+[dimitr@k8s-master$] kubectl apply -f nginx-service.yaml
+service/nginx-demo-svc created
+dimitr@k8s-master:~/k8s/services$ kubectl get svc -n test-zastosunok -o wide
+NAME             TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+nginx-demo-svc   NodePort   10.105.168.110   <none>        80:30080/TCP   6s    app=nginx-demo
+
+[dimitr@k8s-master$] kubectl get endpointslices -n test-zastosunok
+NAME                   ADDRESSTYPE   PORTS   ENDPOINTS                      AGE
+nginx-demo-svc-bm2ww   IPv4          80      192.168.126.1,192.168.194.70   4m32s
+
+```
+![Перевірка доступу з Master-node та Host](./screenshots/curl_to_nginx.png)
+
 
 - Мігрувати власний Docker-образ зі свого registry (imagePullSecrets + ConfigMap/Secret)
 
