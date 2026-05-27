@@ -233,7 +233,7 @@ Kubernetes Cluster
 - Мігрувати власний Docker-образ зі свого registry (imagePullSecrets + ConfigMap/Secret)
 
 Оскільки, на той момент часу в мене був публічний rgistry, а запит був у використанні imagePullSecrets + ConfigMap/Secret, то було вирішено використовувати master node
-як private registry. Як це було реалізовано описано ![тут](./k8s-registry/k8s-registry.md)
+як private registry. Як це було реалізовано описано [тут](./k8s-registry/k8s-registry.md)
 
 у private registry вже є обидва web images: 
 ```
@@ -297,6 +297,158 @@ image-pull-test   1/1     Running   0          20s
 
 Йдемо далі, до наших вже додатків
 Отже створюємо Secret до Mongodb, тут [yaml file](./secrets/mongodb-secret.yaml)
+
+- застосувати: kubectl apply -f mongodb-secret.yaml
+```
+dimitr@k8s-master:~/k8s/secrets$ kubectl get secret -n cars-app mongodb-secret
+NAME             TYPE     DATA   AGE
+mongodb-secret   Opaque   2      5m42s
+```
+
+Тепер Secret для backend → MongoDB
+Навіщо
+
+Backend не повинен мати MongoDB password у Docker image або ConfigMap.
+
+Кладемо повний URI в Secret: mongodb://cars_admin:cars_admin_password@mongodb:27017/cars_db?authSource=admin
+
+- створюємо monitor-api-secret [yaml file](./secrets/monitor-api-secret.yaml)
+- застосовуємо: kubectl apply -f monitor-api-secret.yaml
+перевіряємо:
+```
+dimitr@k8s-master:~/k8s/secrets$ kubectl get secret -n cars-app monitor-api-secret
+NAME                 TYPE     DATA   AGE
+monitor-api-secret   Opaque   1      33s
+```
+
+Створити ConfigMap для backend (необхідні змінні, які не є sensetive)
+
+тут [приклад](./configmaps/monitor-api-config.yaml), який використовувався
+
+застосувати та перевірити
+
+
+
+### Створення ролей
+kubectl label node k8s-worker1 role=app
+kubectl label node k8s-worker2 role=db
+```
+dimitr@k8s-master:~$ kubectl get nodes -L role
+NAME          STATUS   ROLES           AGE   VERSION   ROLE
+k8s-master    Ready    control-plane   45h   v1.34.8   
+k8s-worker1   Ready    <none>          45h   v1.34.8   app
+k8s-worker2   Ready    <none>          27h   v1.34.8   db
+```
+
+Наступний крок Деплой MongoDB з auth
+[деплой](./deployments/mongodb.yaml) файл
+
+Перед деплоєм потрібно створити local PersistentVolume на k8s-worker2, тому що у кластері немає dynamic provisioning. Команда перевірки:
+```
+dimitr@k8s-master:~$ kubectl get storageclass
+No resources found
+``` 
+Для цього створюємо локальну директорію:
+```
+dimitr@k8s-worker2:~$ sudo mkdir -p /mnt/data/mongodb
+dimitr@k8s-worker2:~$ sudo chmod 777 /mnt/data/mongodb
+```
+
+Створення PersistentVolume, [yaml](./persistentvolumes/mongodb-pv.yaml)
+застосувати: kubectl apply -f mongodb-pv.yaml
+```
+dimitr@k8s-master:~$ kubectl get pv
+NAME               CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS    VOLUMEATTRIBUTESCLASS   REASON   AGE
+mongodb-local-pv   2Gi        RWO            Retain           Available           local-storage   <unset>                          28s
+```
+
+Перед запуском деплою, mongodb:7 image має бути у внутрішньому registry
+
+```
+dimitr@k8s-master:~/k8s/deployments$ kubectl apply -f mongodb.yaml
+service/mongodb created
+statefulset.apps/mongodb created
+```
+```
+dimitr@k8s-master:~$ kubectl get pvc -n cars-app
+NAME                     STATUS   VOLUME             CAPACITY   ACCESS MODES   STORAGECLASS    VOLUMEATTRIBUTESCLASS   AGE
+mongodb-data-mongodb-0   Bound    mongodb-local-pv   2Gi        RWO            local-storage   <unset>                 80s
+```
+
+```
+dimitr@k8s-master:~$ kubectl get pod,svc,pvc -n cars-app
+NAME        READY   STATUS    RESTARTS   AGE    IP               NODE          NOMINATED NODE   READINESS GATES
+mongodb-0   1/1     Running   0          100s   192.168.126.13   k8s-worker2   <none>           <none>
+
+
+NAME              TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE
+service/mongodb   ClusterIP   10.110.181.219   <none>        27017/TCP   19m
+
+NAME                                           STATUS   VOLUME             CAPACITY   ACCESS MODES   STORAGECLASS    VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/mongodb-data-mongodb-0   Bound    mongodb-local-pv   2Gi        RWO            local-storage   <unset>                 14m
+```
+
+Mongodb відпрацювала:
+```
+dimitr@k8s-master:~$ kubectl exec -n cars-app mongodb-0 -- \
+  mongosh -u cars_admin -p cars_admin_password --authenticationDatabase admin \
+  --eval "db.adminCommand('ping')"
+{ ok: 1 }
+```
+
+Тепер деплоїмо monitor-backend(aka monitor-api)
+[yaml](./deployments/monitor-api.yaml) файл
+```
+dimitr@k8s-master:~/k8s/deployments$ kubectl apply -f monitor-api.yaml
+deployment.apps/monitor-api created
+service/monitor-api created
+```
+результат:
+```
+dimitr@k8s-master:~$ kubectl get pod,svc,pvc -n cars-app -o wide
+NAME                               READY   STATUS    RESTARTS   AGE     IP               NODE          NOMINATED NODE   READINESS GATES
+pod/mongodb-0                      1/1     Running   0          9m18s   192.168.126.13   k8s-worker2   <none>           <none>
+pod/monitor-api-86f48985cf-pcxjl   1/1     Running   0          2m56s   192.168.194.77   k8s-worker1   <none>           <none>
+pod/monitor-api-86f48985cf-q6k2t   1/1     Running   0          2m56s   192.168.194.78   k8s-worker1   <none>           <none>
+
+NAME                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)     AGE     SELECTOR
+service/mongodb       ClusterIP   10.110.181.219   <none>        27017/TCP   28m     app=mongodb
+service/monitor-api   ClusterIP   10.109.21.73     <none>        7000/TCP    2m56s   app=monitor-api
+
+NAME                                           STATUS   VOLUME             CAPACITY   ACCESS MODES   STORAGECLASS    VOLUMEATTRIBUTESCLASS   AGE   VOLUMEMODE
+persistentvolumeclaim/mongodb-data-mongodb-0   Bound    mongodb-local-pv   2Gi        RWO            local-storage   <unset>                 23m   Filesystem
+
+dimitr@k8s-master:~$ kubectl logs -n cars-app monitor-api-86f48985cf-pcxjl
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:7000 (Press CTRL+C to quit)
+INFO:     10.0.2.15:42080 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.0.2.15:42086 - "GET /health HTTP/1.1" 200 OK
+INFO:     10.0.2.15:45834 - "GET /health HTTP/1.1" 200 OK
+```
+
+Наче все ок, але:
+```
+dimitr@k8s-master:~$ kubectl run curl-test -n cars-app --rm -it \
+  --image=curlimages/curl \
+  --restart=Never \
+  -- curl http://monitor-api:7000/health
+All commands and output from this session will be recorded in container logs, including credentials and sensitive information passed through the command prompt.
+If you don't see a command prompt, try pressing enter.
+curl: (6) Could not resolve host: monitor-api
+pod "curl-test" deleted from cars-app namespace
+pod cars-app/curl-test terminated (Error)
+```
+
+а так працює:
+```
+dimitr@k8s-master:~$ kubectl run curl-test -n cars-app --rm -it \
+  --image=curlimages/curl \
+  --restart=Never \
+  -- curl http://10.109.21.73:7000/health
+{"status":"ok"}pod "curl-test" deleted from cars-app namespace
+```
 
 ## Результат дз:
 ```

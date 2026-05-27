@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: monitor-api-config
+  namespace: cars-app
+data:
+  APP_LOGS_PATH: "/app/logs"
+  ALERT_EMAIL: "test@gmail.com"
+  SERVICE_NAME: "ITOUTPOSTS"
+  DB_NAME: "monitoring"
+  COLLECTION_NAME: "script_errors"
+  DATASET_SLUG: "abdulmalik1518/cars-datasets-2025"
+  CSV_NAME: "Cars Datasets 2025.csv"
