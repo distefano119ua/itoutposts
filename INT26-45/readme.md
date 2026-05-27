@@ -235,6 +235,74 @@ Kubernetes Cluster
 Оскільки, на той момент часу в мене був публічний rgistry, а запит був у використанні imagePullSecrets + ConfigMap/Secret, то було вирішено використовувати master node
 як private registry. Як це було реалізовано описано ![тут](./k8s-registry/k8s-registry.md)
 
+у private registry вже є обидва web images: 
+```
+curl -u dimitr:password \
+  http://192.168.56.10:30500/v2/_catalog
+{"repositories":["monitor-api","monitor-frontend"]}
+```
 
+Створити namespace для застосунку
+```
+dimitr@k8s-master:~$ kubectl create namespace cars-app
+namespace/cars-app created
+dimitr@k8s-master:~$ kubectl get ns
+NAME              STATUS   AGE
+cars-app          Active   7s
+default           Active   43h
+kube-node-lease   Active   43h
+kube-public       Active   43h
+kube-system       Active   43h
+registry          Active   4h56m
+```
+Створити imagePullSecret
+```
+dimitr@k8s-master:~$ kubectl create secret docker-registry registry-secret \
+  --docker-server=192.168.56.10:30500 \
+  --docker-username=dimitr \
+  --docker-password=password \
+  -n cars-app
+secret/registry-secret created
+```
 
-Результат дз:  
+Перевірка Secrets
+```
+dimitr@k8s-master:~$ kubectl get secret -n cars-app
+NAME              TYPE                             DATA   AGE
+registry-secret   kubernetes.io/dockerconfigjson   1      3m25s
+```
+
+Створення тестового застосунку + imagePullSecret:
+```
+dimitr@k8s-master:~$ cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: image-pull-test
+  namespace: cars-app
+spec:
+  imagePullSecrets:
+    - name: registry-secret
+  containers:
+    - name: test
+      image: 192.168.56.10:30500/monitor-api:v1
+      command: ["sleep", "3600"]
+EOF
+pod/image-pull-test created
+
+dimitr@k8s-master:~$ kubectl get pods -n cars-app -w
+NAME              READY   STATUS    RESTARTS   AGE
+image-pull-test   1/1     Running   0          20s
+```
+
+Йдемо далі, до наших вже додатків
+Отже створюємо Secret до Mongodb, тут [yaml file](./secrets/mongodb-secret.yaml)
+
+## Результат дз:
+```
+dimitr@k8s-master:~$ kubectl get nodes
+NAME          STATUS   ROLES           AGE   VERSION
+k8s-master    Ready    control-plane   45h   v1.34.8
+k8s-worker1   Ready    <none>          44h   v1.34.8
+k8s-worker2   Ready    <none>          27h   v1.34.8
+```

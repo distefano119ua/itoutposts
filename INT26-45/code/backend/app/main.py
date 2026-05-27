@@ -1,0 +1,138 @@
+import json
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from pathlib import Path
+
+from cars.router import get_mongo_client, router as cars_router
+from cars.service import load_cars_csv_to_mongodb
+from config import settings
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import PyMongoError
+
+MONGO_URL = settings.mongo_uri
+DB_NAME = settings.db_name
+COLLECTION_NAME = settings.collection_name
+FALLBACK_ERROR_LOG = Path("/app/logs/mongo_fallback_errors.jsonl")
+
+mongo_client: AsyncIOMotorClient | None = None
+
+
+async def save_error_to_db(error_data: dict) -> None:
+    if mongo_client is None:
+        raise RuntimeError("MongoDB client is not initialized.")
+
+    db = mongo_client[DB_NAME]
+    collection = db[COLLECTION_NAME]
+    await collection.insert_one(error_data)
+
+
+async def save_error_to_file(error_data: dict) -> None:
+    FALLBACK_ERROR_LOG.parent.mkdir(parents=True, exist_ok=True)
+
+    with FALLBACK_ERROR_LOG.open("a", encoding="utf-8") as file:
+        file.write(
+            json.dumps(
+                error_data,
+                default=str,
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
+
+
+async def check_mongodb_connection() -> bool:
+    if mongo_client is None:
+        return False
+
+    try:
+        await mongo_client.admin.command("ping")
+        return True
+    except PyMongoError:
+        return False
+
+
+async def provide_mongo_client() -> AsyncIOMotorClient:
+    """
+    Реальная dependency для cars.router.
+    """
+    if mongo_client is None:
+        raise RuntimeError("MongoDB client is not initialized.")
+
+    return mongo_client
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global mongo_client
+
+    mongo_client = AsyncIOMotorClient(
+        MONGO_URL,
+        serverSelectionTimeoutMS=3000,
+    )
+
+    mongo_available = await check_mongodb_connection()
+
+    if not mongo_available:
+        mongo_client.close()
+        mongo_client = None
+
+        await save_error_to_file(
+            {
+                "service": settings.service_name,
+                "type": "mongodb_connection_error",
+                "message": "MongoDB is not available on startup",
+                "created_at": datetime.now(timezone.utc),
+            }
+        )
+
+    else:
+        try:
+            import_result = await load_cars_csv_to_mongodb()
+
+            print(
+                "[cars_csv_import] Import result:",
+                json.dumps(import_result, default=str, ensure_ascii=False),
+            )
+
+        except Exception as e:
+            await save_error_to_file(
+                {
+                    "service": settings.service_name,
+                    "type": "cars_csv_import_error",
+                    "message": str(e),
+                    "created_at": datetime.now(timezone.utc),
+                }
+            )
+
+    yield
+
+    if mongo_client is not None:
+        mongo_client.close()
+
+
+app = FastAPI(lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost",
+        "http://127.0.0.1",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:7777",
+        "http://127.0.0.1:7777",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.dependency_overrides[get_mongo_client] = provide_mongo_client
+app.include_router(cars_router)
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}

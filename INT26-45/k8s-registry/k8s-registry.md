@@ -145,6 +145,44 @@ EOF
 Перезапустити containerd: sudo systemctl restart containerd
 Перевірити: systemctl status containerd
 
+- Перевірити, чи containerd використовує config_path
+```
+dimitr@k8s-worker2:~$ grep -n "config_path" /etc/containerd/config.toml
+54:      config_path = '/etc/containerd/certs.d:/etc/docker/certs.d'
+169:    plugin_config_path = '/etc/nri/conf.d'
+245:    config_path = ''
+
+dimitr@k8s-worker2:~$ sudo nano /etc/containerd/config.toml
+Треба змінити в [plugins.'io.containerd.cri.v1.images'.registry] config_path
+
+
+dimitr@k8s-worker2:~$ grep -n "config_path" /etc/containerd/config.toml
+54:      config_path = '/etc/containerd/certs.d'
+169:    plugin_config_path = '/etc/nri/conf.d'
+245:    config_path = '/etc/containerd/certs.d'
+```
+
+- потім перезапустити:
+```
+sudo systemctl restart containerd
+sudo systemctl restart kubelet
+```
+
+та перевірити:
+```
+systemctl status containerd --no-pager
+systemctl status kubelet --no-pager
+```
+
+та ще раз перевірити, чи може воно завантажить вже якийсь образ з нашого rgistry (пункт 12)
+```
+dimitr@k8s-worker1:~$ sudo crictl pull --creds dimitr:dima123 192.168.56.10:30500/monitor-api:v1
+WARN[0000] Config "/etc/crictl.yaml" does not exist, trying next: "/usr/bin/crictl.yaml" 
+WARN[0000] Image connect using default endpoints: [unix:///run/containerd/containerd.sock unix:///run/crio/crio.sock unix:///var/run/cri-dockerd.sock]. As the default settings are now deprecated, you should set the endpoint instead. 
+Image is up to date for sha256:3172276a65d577f4ccd08dc7bdb43bcf74f815efd71d88adf90ea560d2d9fb1d
+```
+
+
 10. Чому це важливо
 
 imagePullSecrets вирішує тільки авторизацію: username/password для registry
@@ -226,3 +264,12 @@ Client:
 
 docker login 192.168.56.10:30500 (input login & password)
 Login Succeeded
+
+
+12. Запушити свій образ з ХОСТА:
+```
+docker buildx build \
+  --platform linux/arm64 \
+  -t 192.168.56.10:30500/monitor-api:v1 \
+  --push .
+```
