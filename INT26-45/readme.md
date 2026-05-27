@@ -235,4 +235,6 @@ Kubernetes Cluster
 Оскільки, на той момент часу в мене був публічний rgistry, а запит був у використанні imagePullSecrets + ConfigMap/Secret, то було вирішено використовувати master node
 як private registry. Як це було реалізовано описано ![тут](./k8s-registry/k8s-registry.md)
 
+
+
 Результат дз:  

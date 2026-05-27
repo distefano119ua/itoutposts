@@ -180,3 +180,49 @@ Kubernetes Cluster
         ├── port: 5000
         └── nodePort: 30500
 ```
+
+11. Налаштування хоста
+Потрібно налаштувати хост, щоб можна було пушити на нього свої образи
+
+Інструкція для MacOS
+
+- Docker Desktop
+
+Settings → Docker Engine → insert JSON → Apply & Restart
+
+```
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false,
+  "insecure-registries": [
+    "192.168.56.10:30500"
+  ]
+}
+```
+
+- перевірити налаштування на HOST
+```
+❯ docker info
+Client:
+ Version:    29.2.1
+ Context:    desktop-linux
+ Debug Mode: false
+ --- ... ---
+ Experimental: false
+ Insecure Registries:
+  192.168.56.10:30500
+  hubproxy.docker.internal:5555
+  ::1/128
+  127.0.0.0/8
+ Live Restore Enabled: false 
+```
+
+- Login to registry
+
+docker login 192.168.56.10:30500 (input login & password)
+Login Succeeded
