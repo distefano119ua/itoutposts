@@ -198,6 +198,37 @@ nginx-demo-757ddcf8d5-zhhhs   0/1     Running   2 (0s ago)   72s
 nginx-demo-757ddcf8d5-zhhhs   0/1     Running   3 (0s ago)   112s
 nginx-demo-757ddcf8d5-zhhhs   1/1     Running   3 (32s ago)   2m24s
 ```
+### Графічна схема залежностей
+```
+Kubernetes Cluster
+│
+└── Namespace: test-zastosunok
+    │
+    ├── Deployment: nginx-demo
+    │   │
+    │   ├── ReplicaSet: nginx-demo-757ddcf8d5
+    │   │   │
+    │   │   ├── Pod: nginx-demo-xxxxx
+    │   │   │   └── Container: nginx
+    │   │   │
+    │   │   └── Pod: nginx-demo-yyyyy
+    │   │       └── Container: nginx
+    │   │
+    │   └── Desired state:
+    │       ├── image: nginx:1.25
+    │       └── replicas: 2
+    │
+    └── Service: nginx-demo-svc
+        │
+        ├── type: NodePort
+        ├── nodePort: 30080
+        └── selector:
+            └── app=nginx-demo
+                    │
+                    ├── matches Pod: nginx-demo-xxxxx
+                    └── matches Pod: nginx-demo-yyyyy
+```
+
 
 - Мігрувати власний Docker-образ зі свого registry (imagePullSecrets + ConfigMap/Secret)
 
