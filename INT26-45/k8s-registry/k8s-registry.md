@@ -146,7 +146,9 @@ EOF
 Перевірити: systemctl status containerd
 
 10. Чому це важливо
+
 imagePullSecrets вирішує тільки авторизацію: username/password для registry
+
 А containerd hosts.toml вирішує іншу проблему: дозволити containerd працювати з HTTP registry
 
 Підсумкова схема
