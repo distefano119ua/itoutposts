@@ -1,4 +1,4 @@
-Той самиц [md](./README_private_registry_k8s.md) але обробленний АІ
+Той самий [md](./README_private_registry_k8s.md), але обробленний АІ
 
 Сценарій:
 Registry URL:  192.168.56.10:30500
