@@ -1,7 +1,7 @@
 # Kubernetes Cluster with kubeadm on VirtualBox
 
 ## Опис проєкту
-Обробленний АІ-шкою [readme](README_kubernetes_kubeadm_virtualbox.md)
+
 Цей проєкт демонструє ручне розгортання Kubernetes-кластера у VirtualBox за допомогою `kubeadm`.
 
 Кластер складається з:

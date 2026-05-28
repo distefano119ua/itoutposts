@@ -1,12 +1,16 @@
 # Kubernetes cluster (kubeadm) using Virtual Box
 
-## Зміст
+## Зміст 
 
 1 мастер та 2 воркери
 ![k8s-clustrer:](./screenshots/k8s-cluster.png)
+
+Обробленний АІ-шкою [readme](README_kubernetes_kubeadm_virtualbox.md)
+
 ---
 
 ## Розгорнути Kubernetes кластер вручну (kubeadm), підключити worker ноду та задеплоїти застосунок із власного Docker Registry
+
 
 
 Обов'язково:
