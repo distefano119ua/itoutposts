@@ -1,7 +1,12 @@
 ## Minimum Required Tasks
-Suggested scraped-metric panel queries (PromQL, datasource Mimir):
-`sum(rate(nginx_http_requests_total[1m]))`
-`sum(rate(nginx_http_requests_total[1m]))`
+Suggested scraped-metric panel queries (PromQL, datasource `Mimir`):
+```promql
+sum(rate(nginx_http_requests_total[1m]))
+```
+
+```promql
+avg(nginx_up)
+```
 ![minimum:](./ht_items/minimum.png)
 
 ## Expected Deliverables
