@@ -1,0 +1,142 @@
+// Meeting 01 homework starter config.
+// Goal: students complete metrics + logs collection pipelines in Alloy.
+
+local.file "endpoints" {
+  filename = "/etc/alloy/endpoints.json"
+}
+
+livedebugging {
+  enabled = false
+}
+
+// Remote write destination for Prometheus metrics.
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = json_path(local.file.endpoints.content, ".metrics.url")[0]
+  }
+}
+
+// Loki write destination for logs.
+loki.write "loki" {
+  endpoint {
+    url = json_path(local.file.endpoints.content, ".logs.url")[0]
+  }
+}
+
+// ---------------------------------------------------------------------------
+// TODO 1: Metrics scraping via Alloy
+//
+// Add a prometheus.scrape component for nginx-exporter:9113 and forward to:
+//   [prometheus.remote_write.mimir.receiver]
+//
+// Note: if you set scrape_interval below 10s, also set scrape_timeout to a
+// smaller value (for example interval 5s, timeout 4s).
+//
+// Optional: also scrape Alloy itself on localhost:12345.
+
+prometheus.scrape "nginx_exporter" {
+  job_name = "nginx-exporter"
+  targets = [
+    {"__address__" = "nginx-exporter:9113", group = "infrastructure", service = "nginx-exporter"},
+  ]
+  forward_to = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "5s"
+  scrape_timeout = "4s"
+}
+
+prometheus.scrape "alloy_itself" {
+  job_name = "alloy-itself"
+  targets = [
+    {"__address__" = "localhost:12345", group = "infrastructure", service = "alloy"},
+  ]
+  forward_to = [prometheus.remote_write.mimir.receiver]
+  scrape_interval = "5s"
+  scrape_timeout = "4s"
+}
+
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// TODO 2: Logs scraping via Alloy
+//
+// 1) Add local.file_match with targets for:
+//    - /var/log/nginx/access-file.log
+//    - /var/log/nginx/error-file.log
+
+local.file_match "nginx_logs" {
+  path_targets = [
+    {"__path__" = "/var/log/nginx/access-file.log", group = "infrastructure", service = "nginx", log_type = "access"},
+    {"__path__" = "/var/log/nginx/error-file.log", group = "infrastructure", service = "nginx", log_type = "error"},
+  ]
+}
+
+//
+// 2) Add loki.source.file that tails those files.
+
+loki.source.file "nginx_logs_source" {
+  targets = local.file_match.nginx_logs.targets
+  forward_to = [loki.process.nginx_logs_processing.receiver]
+}
+
+//
+// 3) Add loki.process to parse access logs and extract labels:
+//    - method
+//    - uri
+//    - status
+
+loki.process "nginx_logs_processing" {
+  
+  stage.regex {
+    expression = `"(?P<method>\S+) (?P<uri>\S+) \S+" (?P<status>\d{3})`
+  }
+  
+  stage.labels {
+    values = {
+      method = "",
+      uri    = "",
+      status = "",
+    }
+  }
+
+  stage.metrics {
+    metric.counter {
+      name = "nginx_requests_total"
+      description = "Total number of nginx requests"
+      action = "inc"
+      match_all = true
+      prefix = "itoutposts_"
+    }
+  }
+
+  stage.metrics {
+    metric.counter {
+      name = "nginx_errors_total"
+      description = "Total number of nginx error requests (status 5xx)"
+      action = "inc"
+      source = "status"
+      value = "500"
+      prefix = "itoutposts_"
+    }
+  }
+
+//
+// 4) Forward processed logs to:
+//    [loki.write.loki.receiver]
+
+  forward_to = [loki.write.loki.receiver]
+}
+
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// BONUS TODO: Logs -> Metrics in Alloy
+//
+// Inside loki.process, add a stage.metrics block to create counters from logs,
+// for example:
+//   - total nginx requests
+//   - nginx 5xx requests
+//
+// Those metrics are exposed on Alloy's /metrics endpoint. If Alloy is scraped
+// and remote-written to Mimir, these become Prometheus-compatible metrics that
+// can be queried from Grafana using the Mimir datasource.
+// ---------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 ## Expected Deliverables
-- Updated Alloy ![config:](./inter-mon/meeting-01/homework/alloy/config.alloy)
+- Updated Alloy ![config:](./ht_items/config.alloy)
 - Screenshot of NGINX metrics query in Grafana Explore
 - Screenshot of NGINX logs query in Grafana Explore
 - Screenshot of a dashboard panel showing request error rate from scraped metrics
