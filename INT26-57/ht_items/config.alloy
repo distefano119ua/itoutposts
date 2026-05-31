@@ -98,6 +98,15 @@ loki.process "nginx_logs_processing" {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // BONUS TODO: Logs -> Metrics in Alloy
+  //
+  // Inside loki.process, add a stage.metrics block to create counters from logs,
+  // for example:
+  //   - total nginx requests
+  //   - nginx 5xx requests
+  //
+
   stage.metrics {
     metric.counter {
       name = "nginx_requests_total"
@@ -119,6 +128,11 @@ loki.process "nginx_logs_processing" {
     }
   }
 
+  // Those metrics are exposed on Alloy's /metrics endpoint. If Alloy is scraped
+  // and remote-written to Mimir, these become Prometheus-compatible metrics that
+  // can be queried from Grafana using the Mimir datasource.
+  // ---------------------------------------------------------------------------
+
 //
 // 4) Forward processed logs to:
 //    [loki.write.loki.receiver]
@@ -126,17 +140,4 @@ loki.process "nginx_logs_processing" {
   forward_to = [loki.write.loki.receiver]
 }
 
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// BONUS TODO: Logs -> Metrics in Alloy
-//
-// Inside loki.process, add a stage.metrics block to create counters from logs,
-// for example:
-//   - total nginx requests
-//   - nginx 5xx requests
-//
-// Those metrics are exposed on Alloy's /metrics endpoint. If Alloy is scraped
-// and remote-written to Mimir, these become Prometheus-compatible metrics that
-// can be queried from Grafana using the Mimir datasource.
 // ---------------------------------------------------------------------------
