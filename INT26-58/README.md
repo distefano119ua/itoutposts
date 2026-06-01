@@ -10,9 +10,9 @@
 1. Add extra RED dimensions (for example endpoint/route and HTTP status code). [DONE]
 2. Build two panels:
    - request rate
+   ![rr](./ht_items/red_m_request_rate.png)
    - error rate
-![rr](./ht_items/red_m_request_rate.png)
-![er](./ht_items/red_m_error_rate.png)
+   ![er](./ht_items/red_m_error_rate.png)
 
 3. Build a latency panel using RED histogram metrics (p95 or average).
 ![lp](./ht_items/p95_latency.png)
