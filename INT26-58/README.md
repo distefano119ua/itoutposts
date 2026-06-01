@@ -59,6 +59,28 @@ curl 'http://localhost:9009/prometheus/api/v1/query?query=sum(rate(traces_spanme
 ```
 
 
+## RED Metric Panel Hints (Mimir PromQL)
+Request rate:
+```promql
+sum(rate(traces_spanmetrics_calls_total[1m]))
+```
+
+Error rate (%):
+```promql
+100 *
+sum(rate(traces_spanmetrics_calls_total{http_status_code=~"4..|5.."}[1m]))
+/
+sum(rate(traces_spanmetrics_calls_total[1m]))
+```
+
+Average latency (ms):
+```promql
+sum(rate(traces_spanmetrics_latency_sum[1m]))
+/
+sum(rate(traces_spanmetrics_latency_count[1m]))
+```
+![al](./ht_items/average_latency.png)
+
 ## Expected Deliverables
 - Updated Alloy [config](./ht_items/config.alloy)
 - Screenshot showing traces in Tempo
