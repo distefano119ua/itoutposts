@@ -1,0 +1,29 @@
+// Meeting 03 homework config.
+// Alloy scrapes the SRE demo service and writes metrics to Mimir.
+
+local.file "endpoints" {
+  filename = "/etc/alloy/endpoints.json"
+}
+
+prometheus.scrape "sre_demo" {
+  targets = [
+    {"__address__" = "sre-demo:8080", job = "sre-demo", service = "sre-demo"},
+  ]
+  scrape_interval = "5s"
+  scrape_timeout  = "4s"
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+}
+
+prometheus.scrape "alloy" {
+  targets = [
+    {"__address__" = "localhost:12345", job = "alloy", service = "alloy"},
+  ]
+  scrape_interval = "15s"
+  forward_to      = [prometheus.remote_write.mimir.receiver]
+}
+
+prometheus.remote_write "mimir" {
+  endpoint {
+    url = json_path(local.file.endpoints.content, ".metrics.url")[0]
+  }
+}

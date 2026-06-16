@@ -1,0 +1,5 @@
+{
+  "metrics": {
+    "url": "http://mimir:9009/api/v1/push"
+  }
+}
