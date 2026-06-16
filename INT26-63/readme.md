@@ -177,7 +177,7 @@ This makes it clear whether the service is above or below the required availabil
 Based on the screenshot, the availability SLI is around:
 
 ```text
-90.5% - 90.6%
+90.5% - 90.55%
 ```
 
 The current value is very close to the SLO target.
