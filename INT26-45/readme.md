@@ -202,40 +202,133 @@ nginx-demo-757ddcf8d5-zhhhs   0/1     Running   2 (0s ago)   72s
 nginx-demo-757ddcf8d5-zhhhs   0/1     Running   3 (0s ago)   112s
 nginx-demo-757ddcf8d5-zhhhs   1/1     Running   3 (32s ago)   2m24s
 ```
+
 ### Графічна схема залежностей
 ```
 Kubernetes Cluster
 │
-└── Namespace: test-zastosunok
+├── Node: k8s-worker1
+│   └── label: role=app
+│
+├── Node: k8s-worker2
+│   └── label: role=db
+│
+└── Namespace: itoutposts
     │
-    ├── Deployment: nginx-demo
-    │   │
-    │   ├── ReplicaSet: nginx-demo-757ddcf8d5
-    │   │   │
-    │   │   ├── Pod: nginx-demo-xxxxx
-    │   │   │   └── Container: nginx
-    │   │   │
-    │   │   └── Pod: nginx-demo-yyyyy
-    │   │       └── Container: nginx
-    │   │
-    │   └── Desired state:
-    │       ├── image: nginx:1.25
-    │       └── replicas: 2
+    ├── ConfigMap: backend-config
+    │   └── env для backend:
+    │       ├── APP_LOGS_PATH
+    │       ├── ALERT_EMAIL
+    │       ├── SERVICE_NAME
+    │       ├── DB_NAME
+    │       ├── COLLECTION_NAME
+    │       ├── DATASET_SLUG
+    │       └── CSV_NAME
     │
-    └── Service: nginx-demo-svc
+    ├── Secret: backend-secret
+    │   └── env для backend:
+    │       └── MONGO_URI=mongodb://mongodb:27017
+    │
+    ├── Deployment: mongodb
+    │   │
+    │   ├── nodeSelector:
+    │   │   └── role=db
+    │   │
+    │   ├── Pod: mongodb-xxxxx
+    │   │   └── Container: mongodb
+    │   │       ├── image: mongo:7
+    │   │       ├── port: 27017
+    │   │       └── volumeMount: /data/db
+    │   │
+    │   ├── PVC: mongo-pvc
+    │   │   └── binds PV: mongo-pv
+    │   │
+    │   └── Service: mongodb
+    │       ├── type: ClusterIP
+    │       ├── port: 27017
+    │       └── selector:
+    │           └── app=mongodb
+    │
+    ├── Deployment: monitor-backend
+    │   │
+    │   ├── nodeSelector:
+    │   │   └── role=app
+    │   │
+    │   ├── initContainer:
+    │   │   └── wait-for-mongodb
+    │   │
+    │   ├── Pod: monitor-backend-xxxxx
+    │   │   └── Container: backend
+    │   │       ├── image: distefano119/pub-itoutposts:backend-1.1.1-arm64
+    │   │       ├── port: 7000
+    │   │       ├── envFrom: backend-config
+    │   │       └── envFrom: backend-secret
+    │   │
+    │   └── Service: monitor-api
+    │       ├── type: ClusterIP
+    │       ├── port: 7000
+    │       └── selector:
+    │           └── app=monitor-backend
+    │
+    ├── Deployment: monitor-frontend
+    │   │
+    │   ├── nodeSelector:
+    │   │   └── role=app
+    │   │
+    │   ├── Pod: monitor-frontend-xxxxx
+    │   │   └── Container: frontend
+    │   │       ├── image: distefano119/pub-itoutposts:frontend-1.0.1-arm64
+    │   │       └── port: 5173
+    │   │
+    │   └── Service: monitor-frontend
+    │       ├── type: ClusterIP
+    │       ├── port: 5173
+    │       └── selector:
+    │           └── app=monitor-frontend
+    │
+    └── Deployment: nginx
         │
-        ├── type: NodePort
-        ├── nodePort: 30080
-        └── selector:
-            └── app=nginx-demo
-                    │
-                    ├── matches Pod: nginx-demo-xxxxx
-                    └── matches Pod: nginx-demo-yyyyy
+        ├── nodeSelector:
+        │   └── role=app
+        │
+        ├── ConfigMap: nginx-config
+        │   └── mounted as:
+        │       └── /etc/nginx/conf.d/default.conf
+        │
+        ├── initContainers:
+        │   ├── wait-for-frontend
+        │   └── wait-for-backend
+        │
+        ├── Pod: nginx-xxxxx
+        │   └── Container: nginx
+        │       ├── image: nginx:1.27-alpine
+        │       ├── port: 80
+        │       └── proxy:
+        │           ├── /      → monitor-frontend:5173
+        │           └── /api/  → monitor-api:7000
+        │
+        └── Service: nginx
+            ├── type: NodePort
+            ├── port: 80
+            ├── nodePort: 30080
+            └── selector:
+                └── app=nginx
+
+External access:
+Browser
+└── http://192.168.56.10:30080
+    └── Service: nginx
+        └── Pod: nginx
+            ├── /      → Service: monitor-frontend → Pod: frontend
+            └── /api/  → Service: monitor-api      → Pod: backend
+                                                  └── mongodb://mongodb:27017
+                                                      └── Service: mongodb
+                                                          └── Pod: mongodb
 ```
 
 
 - Мігрувати власний Docker-образ зі свого registry (imagePullSecrets + ConfigMap/Secret)
-
+`це було зроблено виключно для практики та виконання дз, далі це було виделено та зроблено по іншому`
 Оскільки, на той момент часу в мене був публічний rgistry, а запит був у використанні imagePullSecrets + ConfigMap/Secret, то було вирішено використовувати master node
 як private registry. Як це було реалізовано описано [тут](./k8s-registry/k8s-registry.md)
 
@@ -432,33 +525,48 @@ INFO:     10.0.2.15:42086 - "GET /health HTTP/1.1" 200 OK
 INFO:     10.0.2.15:45834 - "GET /health HTTP/1.1" 200 OK
 ```
 
-Наче все ок, але:
+## Нашe рішення працює
+
+![app](./screenshots/k8s-app.png)
+
 ```
-dimitr@k8s-master:~$ kubectl run curl-test -n cars-app --rm -it \
-  --image=curlimages/curl \
-  --restart=Never \
-  -- curl http://monitor-api:7000/health
-All commands and output from this session will be recorded in container logs, including credentials and sensitive information passed through the command prompt.
-If you don't see a command prompt, try pressing enter.
-curl: (6) Could not resolve host: monitor-api
-pod "curl-test" deleted from cars-app namespace
-pod cars-app/curl-test terminated (Error)
+dimitr@k8s-master:~$ kubectl get pod,svc,pvc -n itoutposts -o wide
+NAME                                    READY   STATUS    RESTARTS   AGE   IP               NODE          NOMINATED NODE   READINESS GATES
+pod/mongodb-8fb697f97-8gk48             1/1     Running   0          27m   192.168.126.19   k8s-worker2   <none>           <none>
+pod/monitor-backend-7dbc547d88-7l9zx    1/1     Running   0          27m   192.168.194.89   k8s-worker1   <none>           <none>
+pod/monitor-frontend-854dfb874d-sm7c7   1/1     Running   0          27m   192.168.194.87   k8s-worker1   <none>           <none>
+pod/nginx-5886486cc6-tnmzg              1/1     Running   0          27m   192.168.194.88   k8s-worker1   <none>           <none>
+
+NAME                       TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE   SELECTOR
+service/mongodb            ClusterIP   10.111.24.153   <none>        27017/TCP      27m   app=mongodb
+service/monitor-api        ClusterIP   10.101.102.70   <none>        7000/TCP       27m   app=monitor-backend
+service/monitor-frontend   ClusterIP   10.108.222.32   <none>        5173/TCP       27m   app=monitor-frontend
+service/nginx              NodePort    10.99.209.3     <none>        80:30080/TCP   27m   app=nginx
+
+NAME                              STATUS   VOLUME     CAPACITY   ACCESS MODES   STORAGECLASS    VOLUMEATTRIBUTESCLASS   AGE   VOLUMEMODE
+persistentvolumeclaim/mongo-pvc   Bound    mongo-pv   10Gi       RWO            local-storage   <unset>                 27m   Filesystem
+
+NAME                         ENDPOINTS              AGE
+endpoints/mongodb            192.168.126.19:27017   39m
+endpoints/monitor-api        192.168.194.89:7000    39m
+endpoints/monitor-frontend   192.168.194.87:5173    39m
+endpoints/nginx              192.168.194.88:80      39m
 ```
 
-а так працює:
-```
-dimitr@k8s-master:~$ kubectl run curl-test -n cars-app --rm -it \
-  --image=curlimages/curl \
-  --restart=Never \
-  -- curl http://10.109.21.73:7000/health
-{"status":"ok"}pod "curl-test" deleted from cars-app namespace
-```
 
-## Результат дз:
+
+## HELM:
+
+можете спробувати у себе, поставити:
+- images доступні
+- встановіть тільки helm на мастер
+- [тут все є](./helm/)
+
+
+Команда запуску: `helm install itoutposts ./itoutposts`
+Koманда видалення: `helm uninstall itoutposts ./itoutposts` 
 ```
-dimitr@k8s-master:~$ kubectl get nodes
-NAME          STATUS   ROLES           AGE   VERSION
-k8s-master    Ready    control-plane   45h   v1.34.8
-k8s-worker1   Ready    <none>          44h   v1.34.8
-k8s-worker2   Ready    <none>          27h   v1.34.8
+dimitr@k8s-master:~$ helm list
+NAME            NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                   APP VERSION
+itoutposts      default         1               2026-06-21 20:23:02.001477044 +0000 UTC deployed        itoutposts-0.1.0        1.16.0     
 ```
