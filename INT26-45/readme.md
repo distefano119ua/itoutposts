@@ -39,9 +39,7 @@ kubeadm join 192.168.56.10:6443 --token 9k8as9.uk9jkq6tslo3sdd \
 	--discovery-token-ca-cert-hash sha256:b0c3bbb815918f3b3ee41c551a7cbb080ab1d77626e21sss 
 ```
 
-- Задеплоїти тестовий застосунок (Deployment + Service), відпрацювати: scaling, rolling update, rollback, self-healing
-
-[Deployment](./deployments/nginx-config.yaml)
+- Задеплоїти тестовий застосунок (Deployment + Service), відпрацювати: scaling, rolling update, rollback, self-healing [Deployment](./deployments/nginx-config.yaml)
 
 ```
 [dimitr@k8s-master$] kubectl get deployment,rs,pod -n test-zastosunok -o wide
@@ -57,7 +55,7 @@ pod/nginx-demo-757ddcf8d5-7bc85   1/1     Running   0          21m   192.168.194
 
 ```
 
-[Service](./services/nginx-service.yaml)
+Сам [Service](./services/nginx-service.yaml)
 ```
 [dimitr@k8s-master$] kubectl apply -f nginx-service.yaml
 service/nginx-demo-svc created
