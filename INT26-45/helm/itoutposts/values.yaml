@@ -1,0 +1,50 @@
+namespace: itoutposts
+
+nodeSelector:
+  app:
+    role: app
+  db:
+    role: db
+
+backend:
+  name: monitor-backend
+  image: distefano119/pub-itoutposts:backend-1.1.1-arm64
+  port: 7000
+  replicas: 1
+
+frontend:
+  name: monitor-frontend
+  image: distefano119/pub-itoutposts:frontend-1.0.2-arm64
+  port: 5173
+  replicas: 1
+
+nginx:
+  name: nginx
+  image: nginx:1.27-alpine
+  port: 80
+  nodePort: 30080
+  replicas: 1
+
+mongodb:
+  name: mongodb
+  image: mongo:7
+  port: 27017
+  replicas: 1
+  storage:
+    className: local-storage
+    size: 10Gi
+    path: /etc/kubernetes/mongodb
+    pvName: mongo-pv
+    pvcName: mongo-pvc
+
+config:
+  APP_LOGS_PATH: "/app/logs"
+  ALERT_EMAIL: "test@gmail.com"
+  SERVICE_NAME: "ITOUTPOSTS"
+  DB_NAME: "monitoring"
+  COLLECTION_NAME: "script_errors"
+  DATASET_SLUG: "abdulmalik1518/cars-datasets-2025"
+  CSV_NAME: "Cars Datasets 2025.csv"
+
+secret:
+  MONGO_URI: "mongodb://mongodb:27017"

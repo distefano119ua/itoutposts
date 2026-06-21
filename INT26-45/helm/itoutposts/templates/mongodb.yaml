@@ -1,0 +1,91 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.mongodb.storage.className }}
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.mongodb.storage.pvName }}
+spec:
+  storageClassName: {{ .Values.mongodb.storage.className }}
+  capacity:
+    storage: {{ .Values.mongodb.storage.size }}
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  local:
+    path: {{ .Values.mongodb.storage.path }}
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: role
+              operator: In
+              values:
+                - db
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.mongodb.storage.pvcName }}
+  namespace: {{ .Values.namespace }}
+spec:
+  storageClassName: {{ .Values.mongodb.storage.className }}
+  accessModes:
+    - ReadWriteOnce
+  volumeName: {{ .Values.mongodb.storage.pvName }}
+  resources:
+    requests:
+      storage: {{ .Values.mongodb.storage.size }}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.mongodb.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.mongodb.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.mongodb.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.mongodb.name }}
+    spec:
+      nodeSelector:
+{{ toYaml .Values.nodeSelector.db | indent 8 }}
+      containers:
+        - name: {{ .Values.mongodb.name }}
+          image: {{ .Values.mongodb.image }}
+          ports:
+            - containerPort: {{ .Values.mongodb.port }}
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+      volumes:
+        - name: mongodb-data
+          persistentVolumeClaim:
+            claimName: {{ .Values.mongodb.storage.pvcName }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mongodb.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Values.mongodb.name }}
+  ports:
+    - name: mongodb
+      port: {{ .Values.mongodb.port }}
+      targetPort: {{ .Values.mongodb.port }}
