@@ -41,7 +41,7 @@ kubeadm join 192.168.56.10:6443 --token 9k8as9.uk9jkq6tslo3sdd \
 
 - Задеплоїти тестовий застосунок (Deployment + Service), відпрацювати: scaling, rolling update, rollback, self-healing
 
-![Deployment](./deployments/nginx-config.yaml)
+[Deployment](./deployments/nginx-config.yaml)
 
 ```
 [dimitr@k8s-master$] kubectl get deployment,rs,pod -n test-zastosunok -o wide
@@ -57,7 +57,7 @@ pod/nginx-demo-757ddcf8d5-7bc85   1/1     Running   0          21m   192.168.194
 
 ```
 
-![Service](./services/nginx-service.yaml)
+[Service](./services/nginx-service.yaml)
 ```
 [dimitr@k8s-master$] kubectl apply -f nginx-service.yaml
 service/nginx-demo-svc created
