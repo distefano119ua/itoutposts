@@ -15,4 +15,7 @@
 #### Sub-task 1: Розмітити тестові ресурси тегами
 
 - тег `Environment=dev` на EC2 інстанс та S3 бакет
+![image2](./screenshots/ec-dev.png) ![image3](./screenshots/s3-dev.png)
 - тег `Environment=prod` на іншмй EC2 (для перевірки Deny)
+![image4](./screenshots/ec-prod.png)
+
