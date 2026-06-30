@@ -194,8 +194,11 @@ aws: [ERROR]: An error occurred (UnauthorizedOperation) when calling the StopIns
 - Перевірити що AWS Organizations увімкнений
 - Identity Center → Enable (якщо не увімкнений)
 - Створити User: `john.doe`
+
 ![user](./screenshots/user.png)
+
 - Активувати акаунт через email
+
 ![email](./screenshots/email.png)
 
 #### Sub-task 2: Створити Groups
@@ -203,27 +206,36 @@ aws: [ERROR]: An error occurred (UnauthorizedOperation) when calling the StopIns
 - Group 1: cloud-admins
 - Group 2: dev-readonly
 - Додати john.doe в обидві групи
+
 ![groups](./screenshots/subTask2Groups.png)
 
 #### Sub-task 3: Створити 2 Permission Sets
 
 - Permission Set 1: AdminAccess — predefined AdministratorAccess, session 4h
+
 ![permsetsadmin](./screenshots/permsetsadmin.png)
+
 - Permission Set 2: DevReadOnly — custom inline policy з Таска 2, session 8h
+
 ![permsetsdev](./screenshots/permsetsdev.png)
 
 #### Sub-task 4: Призначити до акаунту та перевірити через портал
 
 - Призначити обидва Permission Sets до AWS акаунту
+
 ![awsacc](./screenshots/subtask4Acc.png)
+
 - Залогінитись через SSO Portal як john.doe
+
 ![ssoportal](./screenshots/ssoportal.png)
+
 - Перевірити роль AdminAccess: зупинити EC2
 - Перевірити роль DevReadOnly: зупинити EC2
 
 #### Sub-task 5: Підключити CLI через SSO
 
 **aws configure sso:**
+
 ![ssoconf](./screenshots/ssoconfig.png)
 
 **Перевірка**
