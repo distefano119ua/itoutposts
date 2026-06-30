@@ -1,0 +1,128 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyProdEc2Instances",
+            "Effect": "Deny",
+            "Action": "ec2:*",
+            "Resource": "arn:aws:ec2:*:*:instance/*",
+            "Condition": {
+                "StringEquals": {
+                    "ec2:ResourceTag/Environment": "prod"
+                }
+            }
+        },
+        {
+            "Sid": "DenyProdRdsResources",
+            "Effect": "Deny",
+            "Action": "rds:*",
+            "Resource": [
+                "arn:aws:rds:*:*:db:*",
+                "arn:aws:rds:*:*:cluster:*",
+                "arn:aws:rds:*:*:snapshot:*",
+                "arn:aws:rds:*:*:cluster-snapshot:*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/Environment": "prod"
+                }
+            }
+        },
+        {
+            "Sid": "DenyListProdTaggedBuckets",
+            "Effect": "Deny",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::*",
+            "Condition": {
+                "StringEquals": {
+                    "s3:BucketTag/Environment": "prod"
+                }
+            }
+        },
+        {
+            "Sid": "DenyGetProdTaggedObjects",
+            "Effect": "Deny",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::*/*",
+            "Condition": {
+                "StringEquals": {
+                    "s3:ExistingObjectTag/Environment": "prod"
+                }
+            }
+        },
+        {
+            "Sid": "AllowEc2DescribeGlobally",
+            "Effect": "Allow",
+            "Action": "ec2:Describe*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowEc2DevInstancesForTest",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:StartInstances",
+                "ec2:StopInstances",
+                "ec2:RebootInstances"
+            ],
+            "Resource": "arn:aws:ec2:*:*:instance/*",
+            "Condition": {
+                "StringEquals": {
+                    "ec2:ResourceTag/Environment": "dev"
+                }
+            }
+        },
+        {
+            "Sid": "AllowRdsDescribeOnlyDevResources",
+            "Effect": "Allow",
+            "Action": "rds:Describe*",
+            "Resource": [
+                "arn:aws:rds:*:*:db:*",
+                "arn:aws:rds:*:*:cluster:*",
+                "arn:aws:rds:*:*:snapshot:*",
+                "arn:aws:rds:*:*:cluster-snapshot:*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/Environment": "dev"
+                }
+            }
+        },
+        {
+            "Sid": "AllowListDevTaggedBuckets",
+            "Effect": "Allow",
+            "Action": "s3:ListBucket",
+            "Resource": "arn:aws:s3:::*",
+            "Condition": {
+                "StringEquals": {
+                    "s3:BucketTag/Environment": "dev"
+                }
+            }
+        },
+        {
+            "Sid": "AllowReadOnlyDevTaggedObjects",
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::*/*",
+            "Condition": {
+                "StringEquals": {
+                    "s3:ExistingObjectTag/Environment": "dev"
+                }
+            }
+        },
+        {
+            "Sid": "AllowIamReadOnlyGlobally",
+            "Effect": "Allow",
+            "Action": [
+                "iam:Get*",
+                "iam:List*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "AllowCloudWatchDescribeGlobally",
+            "Effect": "Allow",
+            "Action": "cloudwatch:Describe*",
+            "Resource": "*"
+        }
+    ]
+}
