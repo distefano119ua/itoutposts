@@ -308,3 +308,7 @@ aws ec2 describe-instances --profile dev-readonly:
 `aws ec2 stop-instances --instance-ids i-XXXXXXXXXX --profile admin`
 
 ![task3Admin](./screenshots/task3ProfileAdmin.png)
+
+## ТАСКА 4 — Billing: доступ, бюджет, алерти
+
+[screen shots](./scrshtsTask4/)
