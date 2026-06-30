@@ -180,3 +180,112 @@ aws: [ERROR]: An error occurred (UnauthorizedOperation) when calling the StopIns
     ]
 }
 ```
+
+## ТАСКА 3 — Identity Center SSO
+
+Summary: [HW] AWS Identity Center: SSO User, Groups, 2 Permission Sets, CLI перевірка
+
+Description: Налаштувати централізований SSO доступ. Один портал → два рівні доступу.
+
+Підзадачі:
+
+Sub-task 1: Підготовка і створення User
+
+Перевірити що AWS Organizations увімкнений
+
+Identity Center → Enable (якщо не увімкнений)
+
+Створити User: john.doe
+
+Активувати акаунт через email
+
+Sub-task 2: Створити Groups
+
+Group 1: cloud-admins
+
+Group 2: dev-readonly
+
+Додати john.doe в обидві групи
+
+Sub-task 3: Створити 2 Permission Sets
+
+Permission Set 1: AdminAccess — predefined AdministratorAccess, session 4h
+
+Permission Set 2: DevReadOnly — custom inline policy з Таска 2, session 8h
+
+Sub-task 4: Призначити до акаунту та перевірити через портал
+
+Призначити обидва Permission Sets до AWS акаунту
+
+Залогінитись через SSO Portal як john.doe
+
+Перевірити роль AdminAccess: зупинити EC2
+
+Перевірити роль DevReadOnly: зупинити EC2
+
+Sub-task 5: Підключити CLI через SSO
+
+# Перевірка
+```
+aws sts get-caller-identity --profile dev-readonly:
+{
+    "UserId": "AROAUBMSQ2HMYEGUZ4JCN:john.doe",
+    "Account": "277869547993",
+    "Arn": "arn:aws:sts::277869547993:assumed-role/AWSReservedSSO_DevReadOnly_df212b668f7581c2/john.doe"
+}
+
+aws sts get-caller-identity --profile admin:
+{
+    "UserId": "AROAUBMSQ2HMZCKCFUSV7:john.doe",
+    "Account": "277869547993",
+    "Arn": "arn:aws:sts::277869547993:assumed-role/AWSReservedSSO_AdministratorAccess_b31335e7337844bc/john.doe"
+}
+
+aws ec2 describe-instances --profile dev-readonly:
+{
+    "Reservations": [
+        {
+            "ReservationId": "r-0ba1e69424c2e669f",
+            "OwnerId": "277869547993",
+            "Groups": [],
+            "Instances": [
+                {
+                    "Architecture": "x86_64",
+                    "BlockDeviceMappings": [
+                        {
+                            "DeviceName": "/dev/xvda",
+                            "Ebs": {
+                                "AttachTime": "2026-06-29T13:37:58+00:00",
+                                "DeleteOnTermination": true,
+                                "Status": "attached",
+                                "VolumeId": "vol-0ea33ff97954bb40c",
+                                "EbsCardIndex": 0
+                            }
+                        }
+                    ],
+            
+            ...
+
+                    "InstanceType": "t3.micro",
+                    "LaunchTime": "2026-06-29T13:40:07+00:00",
+                    "Placement": {
+                        "AvailabilityZoneId": "use1-az1",
+                        "GroupName": "",
+                        "Tenancy": "default",
+                        "AvailabilityZone": "us-east-1a"
+                    },
+                    "Monitoring": {
+                        "State": "disabled"
+                    },
+                    "SubnetId": "subnet-0c239673181c80fd7",
+                    "VpcId": "vpc-07eafba8316cb6207",
+                    "PrivateIpAddress": "172.31.15.221",
+                    "PublicIpAddress": "32.197.38.19"
+                }
+            ]
+        }
+    ]
+}            
+```
+`aws ec2 stop-instances --instance-ids i-XXXXXXXXXX --profile dev-readonly` gui screen
+`aws ec2 stop-instances --instance-ids i-XXXXXXXXXX --profile admin` gui screen
