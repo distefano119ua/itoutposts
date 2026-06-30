@@ -73,8 +73,8 @@ aws: [ERROR]: An error occurred (AccessDenied) when calling the GetObject operat
 }
 ```
 
-[imageProd](./screenshots/imageProd.png)
-[imageDev](./screenshots/imageDev.png)
+![imageProd](./screenshots/imageProd.png)
+![imageDev](./screenshots/imageDev.png)
 
 - Deny: всі дії на ресурси з тегом `Environment=prod`
 - Allow: iam:Get*, iam:List*, cloudwatch:Describe* — глобально (без тегів)
@@ -84,7 +84,7 @@ aws: [ERROR]: An error occurred (AccessDenied) when calling the GetObject operat
 - Group: dev-readonly-team → прикріпити DevReadOnlyByTag
 - User: dev.viewer → додати до group
 
-[image7](./screenshots/dev-viewer.png)
+![image7](./screenshots/dev-viewer.png)
 
 #### Sub-task 4: Перевірити доступи
 
@@ -183,49 +183,51 @@ aws: [ERROR]: An error occurred (UnauthorizedOperation) when calling the StopIns
 
 ## ТАСКА 3 — Identity Center SSO
 
-Summary: [HW] AWS Identity Center: SSO User, Groups, 2 Permission Sets, CLI перевірка
+- **Summary:** [HW] AWS Identity Center: SSO User, Groups, 2 Permission Sets, CLI перевірка
 
-Description: Налаштувати централізований SSO доступ. Один портал → два рівні доступу.
+- **Description:** Налаштувати централізований SSO доступ. Один портал → два рівні доступу.
 
-Підзадачі:
+### Підзадачі:
 
-Sub-task 1: Підготовка і створення User
+#### Sub-task 1: Підготовка і створення User
 
-Перевірити що AWS Organizations увімкнений
+- Перевірити що AWS Organizations увімкнений
+- Identity Center → Enable (якщо не увімкнений)
+- Створити User: `john.doe`
+![user](./screenshots/user.png)
+- Активувати акаунт через email
+![email](./screenshots/email.png)
 
-Identity Center → Enable (якщо не увімкнений)
+#### Sub-task 2: Створити Groups
 
-Створити User: john.doe
+- Group 1: cloud-admins
+- Group 2: dev-readonly
+- Додати john.doe в обидві групи
+![groups](./screenshots/subTask2Groups.png)
 
-Активувати акаунт через email
+#### Sub-task 3: Створити 2 Permission Sets
 
-Sub-task 2: Створити Groups
+- Permission Set 1: AdminAccess — predefined AdministratorAccess, session 4h
+![permsetsadmin](./screenshots/permsetsadmin.png)
+- Permission Set 2: DevReadOnly — custom inline policy з Таска 2, session 8h
+![permsetsdev](./screenshots/permsetsdev.png)
 
-Group 1: cloud-admins
+#### Sub-task 4: Призначити до акаунту та перевірити через портал
 
-Group 2: dev-readonly
+- Призначити обидва Permission Sets до AWS акаунту
+![awsacc](./screenshots/subtask4Acc.png)
+- Залогінитись через SSO Portal як john.doe
+![ssoportal](./screenshots/ssoportal.png)
+- Перевірити роль AdminAccess: зупинити EC2
+- Перевірити роль DevReadOnly: зупинити EC2
 
-Додати john.doe в обидві групи
+#### Sub-task 5: Підключити CLI через SSO
 
-Sub-task 3: Створити 2 Permission Sets
+**aws configure sso:**
+![ssoconf](./screenshots/ssoconfig.png)
 
-Permission Set 1: AdminAccess — predefined AdministratorAccess, session 4h
+**Перевірка**
 
-Permission Set 2: DevReadOnly — custom inline policy з Таска 2, session 8h
-
-Sub-task 4: Призначити до акаунту та перевірити через портал
-
-Призначити обидва Permission Sets до AWS акаунту
-
-Залогінитись через SSO Portal як john.doe
-
-Перевірити роль AdminAccess: зупинити EC2
-
-Перевірити роль DevReadOnly: зупинити EC2
-
-Sub-task 5: Підключити CLI через SSO
-
-# Перевірка
 ```
 aws sts get-caller-identity --profile dev-readonly:
 {
@@ -287,5 +289,10 @@ aws ec2 describe-instances --profile dev-readonly:
     ]
 }            
 ```
-`aws ec2 stop-instances --instance-ids i-XXXXXXXXXX --profile dev-readonly` gui screen
-`aws ec2 stop-instances --instance-ids i-XXXXXXXXXX --profile admin` gui screen
+`aws ec2 stop-instances --instance-ids i-XXXXXXXXXX --profile dev-readonly`
+
+![task3Dev](./screenshots/task3ProfileDev.png)
+
+`aws ec2 stop-instances --instance-ids i-XXXXXXXXXX --profile admin`
+
+![task3Admin](./screenshots/task3ProfileAdmin.png)
